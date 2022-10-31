@@ -1,15 +1,12 @@
 # competition-format-service
 
-Backend service to create events, create raceclasses and assign bibs to contestants.
+Backend service to administrate competition formats.
 
 Supported [competition formats](https://assets.fis-ski.com/image/upload/v1624284540/fis-prod/assets/ICR_CrossCountry_2022_clean.pdf):
 
 in this version:
 
 - Interval Start competition,
-
-In next version:
-
 - Individual sprint competition without a qualification round.
 
 In future versions:
@@ -26,29 +23,15 @@ In future versions:
 ```Shell
 % curl -H "Content-Type: application/json" \
   -X POST \
-  --data '{"username":"admin","password":"passw123"}' \
+  --data '{"username":"admin","password":"password"}' \
   http://localhost:8082/login
 % export ACCESS="" #token from response
 % curl -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ACCESS" \
   -X POST \
   --data @tests/files/competition_format_individual_sprint.json \
-  http://localhost:8080/events/
-% curl -H "Content-Type: application/json" \
-  -H "Authorization: Bearer $ACCESS" \
-  -X POST \
-  --data @tests/files/event.json \
-  http://localhost:8080/events
-% curl -H "Authorization: Bearer $ACCESS"  http://localhost:8080/events
-% curl -H "Content-Type: multipart/form-data" \
-  -H "Authorization: Bearer $ACCESS" \
-  -X POST \
-  -F "data=@tests/files/contestants_all.csv; type=text/csv" \
-  http://localhost:8080/events/<event-id/contestants
-% curl \
-  -H "Authorization: Bearer $ACCESS" \
-  -X GET \
-  http://localhost:8080/events/<event-id>/contestants
+  http://localhost:8080/competition-formats
+% curl http://localhost:8080/competition-formats
 ```
 
 Look to the [openAPI specification](./specification.yaml) for the details.
