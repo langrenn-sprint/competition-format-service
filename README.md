@@ -31,7 +31,9 @@ In future versions:
   -X POST \
   --data @tests/files/competition_format_individual_sprint.json \
   http://localhost:8080/competition-formats
-% curl http://localhost:8080/competition-formats
+% curl http://localhost:8080/competition-formats # list all competition formats
+% curl "http://localhost:8080/competition-formats?name=Individual%20Sprint" # search competition format by name
+% curl http://localhost:8080/competition-formats/1 # get competition format by id 
 ```
 
 Look to the [openAPI specification](./specification.yaml) for the details.
