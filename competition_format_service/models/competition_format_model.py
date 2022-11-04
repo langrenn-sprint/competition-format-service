@@ -42,8 +42,9 @@ class RaceSetting(DataClassJsonMixin):
     """Data class with details about the settings of a race."""
 
     max_no_of_contestants: int
+    rounds: List[str]
     no_of_heats: Dict[str, int]
-    rules: Dict[str, Dict[str, Union[int, str]]]
+    from_to: Dict[str, Dict[str, Union[int, str]]]
 
 
 @dataclass
@@ -55,7 +56,8 @@ class IndividualSprintFormat(CompetitionFormat, DataClassJsonMixin):
     time_between_heats: time
     rounds_ranked_classes: List[str]
     rounds_non_ranked_classes: List[str]
-    race_config: Dict[str, RaceSetting]
+    race_config_ranked: List[RaceSetting]
+    race_config_non_ranked: List[RaceSetting]
     datatype: str = field(
         metadata=dict(marshmallow_field=Constant("individual_sprint")),
         default="individual_sprint",

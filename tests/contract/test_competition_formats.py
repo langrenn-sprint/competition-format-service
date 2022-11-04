@@ -1,6 +1,7 @@
 """Contract test cases for competition-formats."""
 import asyncio
 from copy import deepcopy
+from json import load
 import logging
 import os
 from typing import Any, AsyncGenerator
@@ -53,69 +54,17 @@ async def delete_competition_formats(http_service: Any, token: MockFixture) -> N
 @pytest.fixture(scope="module")
 async def competition_format_interval_start() -> dict:
     """An competition_format object for testing."""
-    return {
-        "name": "Interval Start",
-        "starting_order": "Draw",
-        "start_procedure": "Interval Start",
-        "time_between_groups": "00:10:00",
-        "intervals": "00:00:30",
-        "max_no_of_contestants_in_raceclass": 9999,
-        "max_no_of_contestants_in_race": 9999,
-        "datatype": "interval_start",
-    }
+    with open("tests/files/competition_format_interval_start.json", "r") as file:
+        competition_format = load(file)
+    return competition_format
 
 
 @pytest.fixture(scope="module")
 async def competition_format_individual_sprint() -> dict:
     """An competition_format object for testing."""
-    return {
-        "name": "Individual Sprint",
-        "starting_order": "Draw",
-        "start_procedure": "Heat Start",
-        "time_between_groups": "00:10:00",
-        "time_between_rounds": "00:05:00",
-        "time_between_heats": "00:02:30",
-        "rounds_ranked_classes": ["Q", "S", "F"],
-        "rounds_non_ranked_classes": ["R1", "R2"],
-        "max_no_of_contestants_in_raceclass": 80,
-        "max_no_of_contestants_in_race": 10,
-        "datatype": "individual_sprint",
-        "race_config": {
-            "1": {
-                "max_no_of_contestants": 8,
-                "no_of_heats": {"Q": 1, "FA": 1},
-                "rules": {"Q": {"FA": "REST"}},
-            },
-            "2": {
-                "max_no_of_contestants": 16,
-                "no_of_heats": {"Q": 2, "FA": 1, "FB": 1},
-                "rules": {"Q": {"FA": 4, "FB": "REST"}},
-            },
-            "3": {
-                "max_no_of_contestants": 24,
-                "no_of_heats": {"Q": 3, "SA": 2, "FA": 1, "FB": 1, "FC": 1},
-                "rules": {"Q": {"SA": 5, "FC": "REST"}, "SA": {"FA": 4, "FB": 4}},
-            },
-            "4": {
-                "max_no_of_contestants": 32,
-                "no_of_heats": {"Q": 4, "SA": 2, "SC": 2, "FA": 1, "FB": 1, "FC": 1},
-                "rules": {
-                    "Q": {"SA": 4, "SC": "REST"},
-                    "SA": {"FA": 4, "FB": 4},
-                    "SC": {"FC": 4},
-                },
-            },
-            "5": {
-                "max_no_of_contestants": 80,
-                "no_of_heats": {"Q": 8, "SA": 4, "SC": 4, "FA": 1, "FB": 1, "FC": 1},
-                "rules": {
-                    "Q": {"SA": 4, "SC": "REST"},
-                    "SA": {"FA": 2, "FB": 2},
-                    "SC": {"FC": 2},
-                },
-            },
-        },
-    }
+    with open("tests/files/competition_format_individual_sprint.json", "r") as file:
+        competition_format = load(file)
+    return competition_format
 
 
 @pytest.fixture(scope="module")
@@ -259,7 +208,14 @@ async def test_get_competition_format_by_id(
         body["max_no_of_contestants_in_race"]
         == competition_format_individual_sprint["max_no_of_contestants_in_race"]
     )
-    assert body["race_config"] == competition_format_individual_sprint["race_config"]
+    assert (
+        body["race_config_ranked"]
+        == competition_format_individual_sprint["race_config_ranked"]
+    )
+    assert (
+        body["race_config_non_ranked"]
+        == competition_format_individual_sprint["race_config_non_ranked"]
+    )
 
 
 @pytest.mark.contract
