@@ -208,9 +208,28 @@ async def test_get_competition_format_by_id(
         body["max_no_of_contestants_in_race"]
         == competition_format_individual_sprint["max_no_of_contestants_in_race"]
     )
+    # Check that the race_config_non_ranked is sorted on max_no_of_contestants:
+    assert all(
+        body["race_config_non_ranked"][i]["max_no_of_contestants"]
+        <= body["race_config_non_ranked"][i + 1]["max_no_of_contestants"]
+        for i in range(len(body["race_config_non_ranked"]) - 1)
+    )
+    # Check that the race_config_ranked is sorted on max_no_of_contestants:
+    assert all(
+        body["race_config_ranked"][i]["max_no_of_contestants"]
+        <= body["race_config_ranked"][i + 1]["max_no_of_contestants"]
+        for i in range(len(body["race_config_ranked"]) - 1)
+    )
+
+    competition_format_individual_sprint["race_config_ranked"].sort(
+        key=lambda x: x["max_no_of_contestants"]
+    )
     assert (
         body["race_config_ranked"]
         == competition_format_individual_sprint["race_config_ranked"]
+    )
+    competition_format_individual_sprint["race_config_non_ranked"].sort(
+        key=lambda x: x["max_no_of_contestants"]
     )
     assert (
         body["race_config_non_ranked"]
@@ -220,7 +239,7 @@ async def test_get_competition_format_by_id(
 
 @pytest.mark.contract
 @pytest.mark.asyncio
-async def test_get_competition_format_by_name(
+async def test_get_competition_format_by_name_interval_start(
     http_service: Any, token: MockFixture, competition_format_interval_start: dict
 ) -> None:
     """Should return OK and an competition_format as json."""
@@ -244,6 +263,78 @@ async def test_get_competition_format_by_name(
     assert (
         body[0]["start_procedure"]
         == competition_format_interval_start["start_procedure"]
+    )
+
+
+@pytest.mark.contract
+@pytest.mark.asyncio
+async def test_get_competition_format_by_name_individual_sprint(
+    http_service: Any, token: MockFixture, competition_format_individual_sprint: dict
+) -> None:
+    """Should return OK and an competition_format as json."""
+    url = f"{http_service}/competition-formats"
+
+    async with ClientSession() as session:
+        query_param = f'name={quote(competition_format_individual_sprint["name"])}'
+        async with session.get(f"{url}?{query_param}") as response:
+            assert str(response.url) == f"{url}?name=Individual%20Sprint"
+            body = await response.json()
+
+    assert response.status == 200
+    assert "application/json" in response.headers[hdrs.CONTENT_TYPE]
+    assert type(competition_format_individual_sprint) is dict
+    assert body[0]["id"]
+    assert body[0]["name"] == competition_format_individual_sprint["name"]
+    assert (
+        body[0]["starting_order"]
+        == competition_format_individual_sprint["starting_order"]
+    )
+    assert (
+        body[0]["start_procedure"]
+        == competition_format_individual_sprint["start_procedure"]
+    )
+    assert (
+        body[0]["time_between_rounds"]
+        == competition_format_individual_sprint["time_between_rounds"]
+    )
+    assert (
+        body[0]["time_between_heats"]
+        == competition_format_individual_sprint["time_between_heats"]
+    )
+    assert (
+        body[0]["max_no_of_contestants_in_raceclass"]
+        == competition_format_individual_sprint["max_no_of_contestants_in_raceclass"]
+    )
+    assert (
+        body[0]["max_no_of_contestants_in_race"]
+        == competition_format_individual_sprint["max_no_of_contestants_in_race"]
+    )
+    # Check that the race_config_non_ranked is sorted on max_no_of_contestants:
+    assert all(
+        body[0]["race_config_non_ranked"][i]["max_no_of_contestants"]
+        <= body[0]["race_config_non_ranked"][i + 1]["max_no_of_contestants"]
+        for i in range(len(body[0]["race_config_non_ranked"]) - 1)
+    )
+    # Check that the race_config_ranked is sorted on max_no_of_contestants:
+    assert all(
+        body[0]["race_config_ranked"][i]["max_no_of_contestants"]
+        <= body[0]["race_config_ranked"][i + 1]["max_no_of_contestants"]
+        for i in range(len(body[0]["race_config_ranked"]) - 1)
+    )
+
+    competition_format_individual_sprint["race_config_ranked"].sort(
+        key=lambda x: x["max_no_of_contestants"]
+    )
+    assert (
+        body[0]["race_config_ranked"]
+        == competition_format_individual_sprint["race_config_ranked"]
+    )
+    competition_format_individual_sprint["race_config_non_ranked"].sort(
+        key=lambda x: x["max_no_of_contestants"]
+    )
+    assert (
+        body[0]["race_config_non_ranked"]
+        == competition_format_individual_sprint["race_config_non_ranked"]
     )
 
 
@@ -276,7 +367,8 @@ async def test_update_competition_format_interval_start(
         async with session.get(url) as response:
             assert response.status == 200
             updated_competition_format = await response.json()
-            assert updated_competition_format["name"] == new_name
+
+    assert updated_competition_format["name"] == new_name
 
 
 @pytest.mark.contract
@@ -298,9 +390,17 @@ async def test_update_competition_format_individual_sprint(
         url = f"{url}/{id}"
 
         request_body = deepcopy(competition_format_individual_sprint)
-        new_name = "Interval Start updated"
+        new_name = "Individual Sprint updated"
         request_body["id"] = id
         request_body["name"] = new_name
+        request_body["race_config_non_ranked"].append(
+            {
+                "max_no_of_contestants": 4,
+                "rounds": ["R1", "R2"],
+                "no_of_heats": {"R1": {"A": 1}, "R2": {"A": 1}},
+                "from_to": {"R1": {"A": {"R2": {"A": "ALL"}}}},
+            },
+        )
 
         async with session.put(url, headers=headers, json=request_body) as response:
             assert response.status == 204
@@ -308,7 +408,25 @@ async def test_update_competition_format_individual_sprint(
         async with session.get(url) as response:
             assert response.status == 200
             updated_competition_format = await response.json()
-            assert updated_competition_format["name"] == new_name
+
+    assert updated_competition_format["name"] == new_name
+
+    # Check that the race_config_non_ranked is sorted on max_no_of_contestants:
+    assert all(
+        updated_competition_format["race_config_non_ranked"][i]["max_no_of_contestants"]
+        <= updated_competition_format["race_config_non_ranked"][i + 1][
+            "max_no_of_contestants"
+        ]
+        for i in range(len(updated_competition_format["race_config_non_ranked"]) - 1)
+    )
+    # Check that the race_config_ranked is sorted on max_no_of_contestants:
+    assert all(
+        updated_competition_format["race_config_ranked"][i]["max_no_of_contestants"]
+        <= updated_competition_format["race_config_ranked"][i + 1][
+            "max_no_of_contestants"
+        ]
+        for i in range(len(updated_competition_format["race_config_ranked"]) - 1)
+    )
 
 
 @pytest.mark.contract
