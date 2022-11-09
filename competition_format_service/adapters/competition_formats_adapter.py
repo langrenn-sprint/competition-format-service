@@ -1,6 +1,6 @@
 """Module for competition_format adapter."""
 import logging
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 from .adapter import Adapter
 
@@ -11,7 +11,7 @@ class CompetitionFormatsAdapter(Adapter):
     @classmethod
     async def get_all_competition_formats(
         cls: Any, db: Any
-    ) -> List:  # pragma: no cover
+    ) -> List[Dict]:  # pragma: no cover
         """Get all competition_formats function."""
         competition_formats: List = []
         cursor = db.competition_formats_collection.find()
@@ -21,7 +21,7 @@ class CompetitionFormatsAdapter(Adapter):
 
     @classmethod
     async def create_competition_format(
-        cls: Any, db: Any, competition_format: dict
+        cls: Any, db: Any, competition_format: Dict
     ) -> str:  # pragma: no cover
         """Create competition_format function."""
         result = await db.competition_formats_collection.insert_one(competition_format)
@@ -30,7 +30,7 @@ class CompetitionFormatsAdapter(Adapter):
     @classmethod
     async def get_competition_format_by_id(
         cls: Any, db: Any, id: str
-    ) -> dict:  # pragma: no cover
+    ) -> Dict:  # pragma: no cover
         """Get competition_format by idfunction."""
         result = await db.competition_formats_collection.find_one({"id": id})
         return result
@@ -38,7 +38,7 @@ class CompetitionFormatsAdapter(Adapter):
     @classmethod
     async def get_competition_formats_by_name(
         cls: Any, db: Any, competition_format_name: str
-    ) -> List[dict]:  # pragma: no cover
+    ) -> List[Dict]:  # pragma: no cover
         """Get competition_format by name function."""
         logging.debug(f"Got request for name {competition_format_name}.")
         competition_formats: List = []
@@ -52,7 +52,7 @@ class CompetitionFormatsAdapter(Adapter):
 
     @classmethod
     async def update_competition_format(
-        cls: Any, db: Any, id: str, competition_format: dict
+        cls: Any, db: Any, id: str, competition_format: Dict
     ) -> Optional[str]:  # pragma: no cover
         """Get competition_format function."""
         result = await db.competition_formats_collection.replace_one(

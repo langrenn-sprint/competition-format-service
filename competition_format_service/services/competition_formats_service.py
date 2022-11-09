@@ -97,6 +97,17 @@ class CompetitionFormatsService:
         competition_format.id = id
         # Validation:
         await validate_competition_format(competition_format)
+        # Sort the race_configs:
+        if type(competition_format) == IndividualSprintFormat:
+            competition_format.race_config_non_ranked.sort(
+                key=lambda k: (k.max_no_of_contestants,),
+                reverse=False,
+            )
+            competition_format.race_config_ranked.sort(
+                key=lambda k: (k.max_no_of_contestants,),
+                reverse=False,
+            )
+
         # insert new competition_format
         new_competition_format = competition_format.to_dict()
         result = await CompetitionFormatsAdapter.create_competition_format(
@@ -120,6 +131,16 @@ class CompetitionFormatsService:
             if competition_format["datatype"] == "interval_start":
                 return IntervalStartFormat.from_dict(competition_format)
             elif competition_format["datatype"] == "individual_sprint":
+                # sort the race-configs by max_no_of_contestants:
+                competition_format["race_config_non_ranked"].sort(
+                    key=lambda k: (k["max_no_of_contestants"],),
+                    reverse=False,
+                )
+                competition_format["race_config_ranked"].sort(
+                    key=lambda k: (k["max_no_of_contestants"],),
+                    reverse=False,
+                )
+
                 return IndividualSprintFormat.from_dict(competition_format)
         raise CompetitionFormatNotFoundException(
             f"CompetitionFormat with id {id} not found"
@@ -134,11 +155,24 @@ class CompetitionFormatsService:
         _competition_formats = (
             await CompetitionFormatsAdapter.get_competition_formats_by_name(db, name)
         )
-        for e in _competition_formats:
-            if e["datatype"] == "interval_start":
-                competition_formats.append(IntervalStartFormat.from_dict(e))
-            elif e["datatype"] == "individual_sprint":
-                competition_formats.append(IndividualSprintFormat.from_dict(e))
+        for competition_format in _competition_formats:
+            if competition_format["datatype"] == "interval_start":
+                competition_formats.append(
+                    IntervalStartFormat.from_dict(competition_format)
+                )
+            if competition_format["datatype"] == "individual_sprint":
+                # sort the race-configs by max_no_of_contestants:
+                competition_format["race_config_non_ranked"].sort(
+                    key=lambda k: (k["max_no_of_contestants"],),
+                    reverse=False,
+                )
+                competition_format["race_config_ranked"].sort(
+                    key=lambda k: (k["max_no_of_contestants"],),
+                    reverse=False,
+                )
+                competition_formats.append(
+                    IndividualSprintFormat.from_dict(competition_format)
+                )
         return competition_formats
 
     @classmethod
@@ -161,6 +195,16 @@ class CompetitionFormatsService:
                 raise IllegalValueException(
                     "Cannot change id for competition_format."
                 ) from None
+            # Sort the race_configs:
+            if type(competition_format) == IndividualSprintFormat:
+                competition_format.race_config_non_ranked.sort(
+                    key=lambda k: (k.max_no_of_contestants,),
+                    reverse=False,
+                )
+                competition_format.race_config_ranked.sort(
+                    key=lambda k: (k.max_no_of_contestants,),
+                    reverse=False,
+                )
             new_competition_format = competition_format.to_dict()
             result = await CompetitionFormatsAdapter.update_competition_format(
                 db, id, new_competition_format

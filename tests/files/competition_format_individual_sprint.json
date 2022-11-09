@@ -213,38 +213,6 @@
   ],
   "race_config_ranked": [
     {
-      "max_no_of_contestants": 7,
-      "rounds": [
-        "Q",
-        "F"
-      ],
-      "no_of_heats": {
-        "Q": {
-          "A": 1
-        },
-        "F": {
-          "A": 1,
-          "B": 0,
-          "C": 0
-        }
-      },
-      "from_to": {
-        "Q": {
-          "A": {
-            "F": {
-              "A": "ALL",
-              "B": 0
-            }
-          },
-          "C": {
-            "F": {
-              "C": 0
-            }
-          }
-        }
-      }
-    },
-    {
       "max_no_of_contestants": 16,
       "rounds": [
         "Q",
@@ -544,6 +512,38 @@
           "C": {
             "F": {
               "C": 2
+            }
+          }
+        }
+      }
+    },
+    {
+      "max_no_of_contestants": 7,
+      "rounds": [
+        "Q",
+        "F"
+      ],
+      "no_of_heats": {
+        "Q": {
+          "A": 1
+        },
+        "F": {
+          "A": 1,
+          "B": 0,
+          "C": 0
+        }
+      },
+      "from_to": {
+        "Q": {
+          "A": {
+            "F": {
+              "A": "ALL",
+              "B": 0
+            }
+          },
+          "C": {
+            "F": {
+              "C": 0
             }
           }
         }
