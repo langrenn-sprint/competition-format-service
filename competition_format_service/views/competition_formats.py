@@ -21,11 +21,10 @@ from competition_format_service.models import (
     IntervalStartFormat,
 )
 from competition_format_service.services import (
-    CompetitionFormatAllreadyExistException,
-    CompetitionFormatNotFoundException,
+    CompetitionFormatAllreadyExistError,
+    CompetitionFormatNotFoundError,
     CompetitionFormatsService,
-    IllegalValueException,
-    InvalidDateFormatException,
+    ValidationError,
 )
 from .utils import extract_token_from_request
 
@@ -95,10 +94,10 @@ class CompetitionFormatsView(View):
                     db, competition_format
                 )
             )
-        except (IllegalValueException, CompetitionFormatAllreadyExistException) as e:
-            raise HTTPUnprocessableEntity(reason=str(e)) from e
-        except InvalidDateFormatException as e:
+        except (CompetitionFormatAllreadyExistError) as e:
             raise HTTPBadRequest(reason=str(e)) from e
+        except (ValidationError) as e:
+            raise HTTPUnprocessableEntity(reason=str(e)) from e
         if competition_format_id:
             logging.debug(
                 f"inserted document with competition_format_id {competition_format_id}"
@@ -132,7 +131,7 @@ class CompetitionFormatView(View):
                     db, competition_format_id
                 )
             )
-        except CompetitionFormatNotFoundException as e:
+        except CompetitionFormatNotFoundError as e:
             raise HTTPNotFound(reason=str(e)) from e
         logging.debug(f"Got competition_format: {competition_format}")
         body = competition_format.to_json()
@@ -175,12 +174,10 @@ class CompetitionFormatView(View):
             await CompetitionFormatsService.update_competition_format(
                 db, competition_format_id, competition_format
             )
-        except IllegalValueException as e:
+        except ValidationError as e:
             raise HTTPUnprocessableEntity(reason=str(e)) from e
-        except CompetitionFormatNotFoundException as e:
+        except CompetitionFormatNotFoundError as e:
             raise HTTPNotFound(reason=str(e)) from e
-        except InvalidDateFormatException as e:
-            raise HTTPBadRequest(reason=str(e)) from e
         return Response(status=204)
 
     async def delete(self) -> Response:
@@ -201,6 +198,6 @@ class CompetitionFormatView(View):
             await CompetitionFormatsService.delete_competition_format(
                 db, competition_format_id
             )
-        except CompetitionFormatNotFoundException as e:
+        except CompetitionFormatNotFoundError as e:
             raise HTTPNotFound(reason=str(e)) from e
         return Response(status=204)
