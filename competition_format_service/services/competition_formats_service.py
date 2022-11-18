@@ -10,30 +10,18 @@ from competition_format_service.models import (
     IndividualSprintFormat,
     IntervalStartFormat,
 )
-from .exceptions import IllegalValueException, InvalidDateFormatException
+from .exceptions import (
+    CompetitionFormatAllreadyExistError,
+    CompetitionFormatNotFoundError,
+    IllegalValueError,
+    InvalidDateFormatError,
+    ValidationError,
+)
 
 
 def create_id() -> str:  # pragma: no cover
     """Creates an uuid."""
     return str(uuid.uuid4())
-
-
-class CompetitionFormatNotFoundException(Exception):
-    """Class representing custom exception for fetch method."""
-
-    def __init__(self, message: str) -> None:
-        """Initialize the error."""
-        # Call the base class constructor with the parameters it needs
-        super().__init__(message)
-
-
-class CompetitionFormatAllreadyExistException(Exception):
-    """Class representing custom exception for fetch method."""
-
-    def __init__(self, message: str) -> None:
-        """Initialize the error."""
-        # Call the base class constructor with the parameters it needs
-        super().__init__(message)
 
 
 class CompetitionFormatsService:
@@ -74,13 +62,13 @@ class CompetitionFormatsService:
             Optional[str]: The id of the created competition_format. None otherwise.
 
         Raises:
-            CompetitionFormatAllreadyExistException: A format with the same name allready exist
-            IllegalValueException: input object has illegal values
+            CompetitionFormatAllreadyExistError: A format with the same name allready exist
+            ValidationError: input object has illegal values
         """
-        # Validation:
+        # Validate that the id is not set:
         if competition_format.id:
-            raise IllegalValueException(
-                "Cannot create competition_format with input id."
+            raise ValidationError(
+                "Cannot create competition-format with input id."
             ) from None
         # Check if it exists:
         _competition_formats = (
@@ -89,14 +77,19 @@ class CompetitionFormatsService:
             )
         )
         if _competition_formats:
-            raise CompetitionFormatAllreadyExistException(
+            raise CompetitionFormatAllreadyExistError(
                 f"Competition-format with name {competition_format.name} allready exist."
             ) from None
         # create id
         id = create_id()
         competition_format.id = id
+
         # Validation:
-        await validate_competition_format(competition_format)
+        try:
+            await validate_competition_format(competition_format)
+        except ValidationError as e:
+            raise e from e
+
         # Sort the race_configs:
         if type(competition_format) == IndividualSprintFormat:
             competition_format.race_config_non_ranked.sort(
@@ -142,7 +135,7 @@ class CompetitionFormatsService:
                 )
 
                 return IndividualSprintFormat.from_dict(competition_format)
-        raise CompetitionFormatNotFoundException(
+        raise CompetitionFormatNotFoundError(
             f"CompetitionFormat with id {id} not found"
         ) from None
 
@@ -192,7 +185,7 @@ class CompetitionFormatsService:
         # update the competition_format if found:
         if old_competition_format:
             if competition_format.id != old_competition_format["id"]:
-                raise IllegalValueException(
+                raise IllegalValueError(
                     "Cannot change id for competition_format."
                 ) from None
             # Sort the race_configs:
@@ -210,7 +203,7 @@ class CompetitionFormatsService:
                 db, id, new_competition_format
             )
             return result
-        raise CompetitionFormatNotFoundException(
+        raise CompetitionFormatNotFoundError(
             f"CompetitionFormat with id {id} not found."
         ) from None
 
@@ -225,7 +218,7 @@ class CompetitionFormatsService:
         if competition_format:
             result = await CompetitionFormatsAdapter.delete_competition_format(db, id)
             return result
-        raise CompetitionFormatNotFoundException(
+        raise CompetitionFormatNotFoundError(
             f"CompetitionFormat with id {id} not found"
         ) from None
 
@@ -240,7 +233,7 @@ async def validate_competition_format(  # noqa: C901
         try:
             time.fromisoformat(competition_format.time_between_groups)  # type: ignore
         except ValueError as e:
-            raise InvalidDateFormatException(
+            raise InvalidDateFormatError(
                 f'time_between_groups "{competition_format.time_between_groups}" has invalid time format.'  # noqa: B950
             ) from e
     # Validate intervals if set:
@@ -250,7 +243,7 @@ async def validate_competition_format(  # noqa: C901
         try:
             time.fromisoformat(competition_format.intervals)  # type: ignore
         except ValueError as e:
-            raise InvalidDateFormatException(
+            raise InvalidDateFormatError(
                 f'intervals "{competition_format.intervals}" has invalid time format.'
             ) from e
     if type(competition_format) is IndividualSprintFormat:
@@ -259,7 +252,7 @@ async def validate_competition_format(  # noqa: C901
             try:
                 time.fromisoformat(competition_format.time_between_rounds)  # type: ignore
             except ValueError as e:
-                raise InvalidDateFormatException(
+                raise InvalidDateFormatError(
                     f'intervals "{competition_format.time_between_rounds}" has invalid time format.'  # noqa: B950
                 ) from e
         # Validate time_between_rounds if set:
@@ -267,6 +260,6 @@ async def validate_competition_format(  # noqa: C901
             try:
                 time.fromisoformat(competition_format.time_between_heats)  # type: ignore
             except ValueError as e:
-                raise InvalidDateFormatException(
+                raise InvalidDateFormatError(
                     f'intervals "{competition_format.time_between_heats}" has invalid time format.'  # noqa: B950
                 ) from e

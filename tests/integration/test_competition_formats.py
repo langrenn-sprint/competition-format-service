@@ -684,7 +684,7 @@ async def test_create_competition_format_interval_start_allready_exist(
     token: MockFixture,
     competition_format_interval_start: dict,
 ) -> None:
-    """Should return 422 HTTPUnprocessable entity."""
+    """Should return 400 Bad request entity."""
     ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
         "competition_format_service.services.competition_formats_service.create_id",
@@ -711,7 +711,7 @@ async def test_create_competition_format_interval_start_allready_exist(
         resp = await client.post(
             "/competition-formats", headers=headers, json=request_body
         )
-        assert resp.status == 422
+        assert resp.status == 400
 
 
 # Mandatory properties missing at create and update:
@@ -926,7 +926,7 @@ async def test_create_competition_format_invalid_intervals(
     token: MockFixture,
     competition_format_interval_start: dict,
 ) -> None:
-    """Should return 400 Bad request."""
+    """Should return 422 Unprocessable Entity."""
     ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
         "competition_format_service.services.competition_formats_service.create_id",
@@ -958,7 +958,7 @@ async def test_create_competition_format_invalid_intervals(
             headers=headers,
             json=competition_format_with_invalid_intervals,
         )
-        assert resp.status == 400
+        assert resp.status == 422
 
 
 @pytest.mark.integration
@@ -968,7 +968,7 @@ async def test_create_competition_format_invalid_time_between_groups(
     token: MockFixture,
     competition_format_interval_start: dict,
 ) -> None:
-    """Should return 400 Bad request."""
+    """Should return 422 Unprocessable Entity."""
     ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
         "competition_format_service.services.competition_formats_service.create_id",
@@ -1002,7 +1002,7 @@ async def test_create_competition_format_invalid_time_between_groups(
             headers=headers,
             json=competition_format_with_invalid_time_between_groups,
         )
-        assert resp.status == 400
+        assert resp.status == 422
 
 
 @pytest.mark.integration
@@ -1012,7 +1012,7 @@ async def test_create_competition_format_invalid_time_between_rounds(
     token: MockFixture,
     competition_format_individual_sprint: dict,
 ) -> None:
-    """Should return 400 Bad request."""
+    """Should return 422 Unprocessable Entity."""
     ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
         "competition_format_service.services.competition_formats_service.create_id",
@@ -1046,7 +1046,7 @@ async def test_create_competition_format_invalid_time_between_rounds(
             headers=headers,
             json=competition_format_with_invalid_time_between_rounds,
         )
-        assert resp.status == 400
+        assert resp.status == 422
 
 
 @pytest.mark.integration
@@ -1056,7 +1056,7 @@ async def test_create_competition_format_invalid_time_between_heats(
     token: MockFixture,
     competition_format_individual_sprint: dict,
 ) -> None:
-    """Should return 400 Bad request."""
+    """Should return 422 Unprocessable Entity."""
     ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
         "competition_format_service.services.competition_formats_service.create_id",
@@ -1090,7 +1090,7 @@ async def test_create_competition_format_invalid_time_between_heats(
             headers=headers,
             json=competition_format_with_invalid_time_between_heats,
         )
-        assert resp.status == 400
+        assert resp.status == 422
 
 
 @pytest.mark.integration
@@ -1100,7 +1100,7 @@ async def test_update_competition_format_invalid_interval(
     token: MockFixture,
     competition_format_interval_start: dict,
 ) -> None:
-    """Should return No Content."""
+    """Should return 422 Unprocessable Entity."""
     ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
         "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",  # noqa: B950
@@ -1127,7 +1127,7 @@ async def test_update_competition_format_invalid_interval(
             headers=headers,
             json=updated_competition_format,
         )
-        assert resp.status == 400
+        assert resp.status == 422
 
 
 # Unauthorized cases:
