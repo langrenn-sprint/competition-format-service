@@ -21,7 +21,7 @@ from competition_format_service.models import (
     IntervalStartFormat,
 )
 from competition_format_service.services import (
-    CompetitionFormatAllreadyExistError,
+    CompetitionFormatAlreadyExistError,
     CompetitionFormatNotFoundError,
     CompetitionFormatsService,
     ValidationError,
@@ -83,10 +83,8 @@ class CompetitionFormatsView(View):
                 raise HTTPBadRequest(
                     reason=f"Unknown datatype {body['datatype']}"
                 ) from None
-        except KeyError as e:
-            raise HTTPUnprocessableEntity(
-                reason=f"Mandatory property {e.args[0]} is missing."
-            ) from e
+        except (KeyError, ValueError) as e:
+            raise HTTPUnprocessableEntity(reason=str(e)) from e
 
         try:
             competition_format_id = (
@@ -94,7 +92,7 @@ class CompetitionFormatsView(View):
                     db, competition_format
                 )
             )
-        except (CompetitionFormatAllreadyExistError) as e:
+        except (CompetitionFormatAlreadyExistError) as e:
             raise HTTPBadRequest(reason=str(e)) from e
         except (ValidationError) as e:
             raise HTTPUnprocessableEntity(reason=str(e)) from e
@@ -165,10 +163,8 @@ class CompetitionFormatView(View):
                 raise HTTPBadRequest(
                     reason=f"Unknown datatype {body['datatype']}"
                 ) from None
-        except KeyError as e:
-            raise HTTPUnprocessableEntity(
-                reason=f"Mandatory property {e.args[0]} is missing."
-            ) from e
+        except (KeyError, ValueError) as e:
+            raise HTTPUnprocessableEntity(reason=str(e)) from e
 
         try:
             await CompetitionFormatsService.update_competition_format(

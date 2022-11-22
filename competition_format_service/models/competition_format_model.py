@@ -4,8 +4,8 @@ from dataclasses import dataclass, field
 from datetime import time
 from typing import Dict, List, Optional, Union
 
-from dataclasses_json import DataClassJsonMixin
-from marshmallow.fields import Constant
+from dataclasses_json import config, DataClassJsonMixin
+from marshmallow.fields import Constant, Time
 
 
 @dataclass
@@ -22,14 +22,26 @@ class CompetitionFormat(DataClassJsonMixin, ABC):  # noqa: B024
     starting_order: str
     max_no_of_contestants_in_raceclass: int
     max_no_of_contestants_in_race: int
+    time_between_groups: time = field(
+        metadata=config(
+            encoder=time.isoformat,
+            decoder=time.fromisoformat,
+            mm_field=Time(format="iso"),
+        )
+    )
 
 
 @dataclass
 class IntervalStartFormat(CompetitionFormat, DataClassJsonMixin):
     """Data class with details about a interval start format."""
 
-    time_between_groups: time
-    intervals: time
+    intervals: time = field(
+        metadata=config(
+            encoder=time.isoformat,
+            decoder=time.fromisoformat,
+            mm_field=Time(format="iso"),
+        )
+    )
     datatype: str = field(
         metadata=dict(marshmallow_field=Constant("interval_start")),
         default="interval_start",
@@ -38,26 +50,37 @@ class IntervalStartFormat(CompetitionFormat, DataClassJsonMixin):
 
 
 @dataclass
-class RaceSetting(DataClassJsonMixin):
+class RaceConfig(DataClassJsonMixin):
     """Data class with details about the settings of a race."""
 
     max_no_of_contestants: int
     rounds: List[str]
-    no_of_heats: Dict[str, int]
-    from_to: Dict[str, Dict[str, Union[int, str]]]
+    no_of_heats: Dict[str, Dict[str, int]]
+    from_to: Dict[str, Dict[str, Dict[str, Dict[str, Union[int, str]]]]]
 
 
 @dataclass
 class IndividualSprintFormat(CompetitionFormat, DataClassJsonMixin):
     """Data class with details about a individual sprint format."""
 
-    time_between_groups: time
-    time_between_rounds: time
-    time_between_heats: time
+    time_between_rounds: time = field(
+        metadata=config(
+            encoder=time.isoformat,
+            decoder=time.fromisoformat,
+            mm_field=Time(format="iso"),
+        )
+    )
+    time_between_heats: time = field(
+        metadata=config(
+            encoder=time.isoformat,
+            decoder=time.fromisoformat,
+            mm_field=Time(format="iso"),
+        )
+    )
     rounds_ranked_classes: List[str]
     rounds_non_ranked_classes: List[str]
-    race_config_ranked: List[RaceSetting]
-    race_config_non_ranked: List[RaceSetting]
+    race_config_ranked: List[RaceConfig]
+    race_config_non_ranked: List[RaceConfig]
     datatype: str = field(
         metadata=dict(marshmallow_field=Constant("individual_sprint")),
         default="individual_sprint",

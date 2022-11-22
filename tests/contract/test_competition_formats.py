@@ -146,6 +146,74 @@ async def test_create_competition_format_individual_sprint(
 
 @pytest.mark.contract
 @pytest.mark.asyncio
+async def test_create_competition_format_individual_sprint_multiple_finals_1(
+    http_service: Any,
+    token: MockFixture,
+    clear_db: AsyncGenerator,
+    competition_format_individual_sprint: dict,
+) -> None:
+    """Should return Created, location header and no body."""
+    url = f"{http_service}/competition-formats"
+    headers = {
+        hdrs.CONTENT_TYPE: "application/json",
+        hdrs.AUTHORIZATION: f"Bearer {token}",
+    }
+    with open(
+        "tests/files/competition_format_individual_sprint_multiple_finals_1.json", "r"
+    ) as file:
+        competition_format = load(file)
+
+    request_body = competition_format
+
+    async with ClientSession() as session:
+        async with session.post(url, headers=headers, json=request_body) as response:
+            status = response.status
+            try:
+                body = await response.json()
+            except ContentTypeError:
+                body = None
+                pass
+
+    assert status == 201, f"body:{body}" if body else ""
+    assert "/competition-formats/" in response.headers[hdrs.LOCATION]
+
+
+@pytest.mark.contract
+@pytest.mark.asyncio
+async def test_create_competition_format_individual_sprint_multiple_finals_2(
+    http_service: Any,
+    token: MockFixture,
+    clear_db: AsyncGenerator,
+    competition_format_individual_sprint: dict,
+) -> None:
+    """Should return Created, location header and no body."""
+    url = f"{http_service}/competition-formats"
+    headers = {
+        hdrs.CONTENT_TYPE: "application/json",
+        hdrs.AUTHORIZATION: f"Bearer {token}",
+    }
+    with open(
+        "tests/files/competition_format_individual_sprint_multiple_finals_2.json", "r"
+    ) as file:
+        competition_format = load(file)
+
+    request_body = competition_format
+
+    async with ClientSession() as session:
+        async with session.post(url, headers=headers, json=request_body) as response:
+            status = response.status
+            try:
+                body = await response.json()
+            except ContentTypeError:
+                body = None
+                pass
+
+    assert status == 201, f"body:{body}" if body else ""
+    assert "/competition-formats/" in response.headers[hdrs.LOCATION]
+
+
+@pytest.mark.contract
+@pytest.mark.asyncio
 async def test_get_all_competition_formats(
     http_service: Any, token: MockFixture
 ) -> None:
