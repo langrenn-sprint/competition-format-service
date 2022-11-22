@@ -678,7 +678,7 @@ async def test_create_competition_format_interval_start_unknown_datatype(
 
 
 @pytest.mark.integration
-async def test_create_competition_format_interval_start_allready_exist(
+async def test_create_competition_format_interval_start_already_exist(
     client: _TestClient,
     mocker: MockFixture,
     token: MockFixture,
@@ -1089,6 +1089,49 @@ async def test_create_competition_format_invalid_time_between_heats(
             "/competition-formats",
             headers=headers,
             json=competition_format_with_invalid_time_between_heats,
+        )
+        assert resp.status == 422
+
+
+@pytest.mark.integration
+async def test_create_competition_format_no_race_config(
+    client: _TestClient,
+    mocker: MockFixture,
+    token: MockFixture,
+    competition_format_individual_sprint: dict,
+) -> None:
+    """Should return 422 Unprocessable Entity."""
+    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    mocker.patch(
+        "competition_format_service.services.competition_formats_service.create_id",
+        return_value=ID,
+    )
+    mocker.patch(
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",  # noqa: B950
+        return_value=[],
+    )
+    mocker.patch(
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",  # noqa: B950
+        return_value=ID,
+    )
+
+    competition_format_without_race_config = deepcopy(
+        competition_format_individual_sprint
+    )
+    competition_format_without_race_config["race_config_non_ranked"] = None
+    competition_format_without_race_config["race_config_ranked"] = None
+
+    headers = {
+        hdrs.CONTENT_TYPE: "application/json",
+        hdrs.AUTHORIZATION: f"Bearer {token}",
+    }
+
+    with aioresponses(passthrough=["http://127.0.0.1"]) as m:
+        m.post("http://example.com:8081/authorize", status=204)
+        resp = await client.post(
+            "/competition-formats",
+            headers=headers,
+            json=competition_format_without_race_config,
         )
         assert resp.status == 422
 

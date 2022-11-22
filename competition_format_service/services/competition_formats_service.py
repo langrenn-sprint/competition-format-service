@@ -1,5 +1,4 @@
 """Module for competition_formats service."""
-from datetime import time
 import logging
 from typing import Any, List, Optional, Union
 import uuid
@@ -9,12 +8,12 @@ from competition_format_service.models import (
     CompetitionFormat,
     IndividualSprintFormat,
     IntervalStartFormat,
+    RaceConfig,
 )
 from .exceptions import (
-    CompetitionFormatAllreadyExistError,
+    CompetitionFormatAlreadyExistError,
     CompetitionFormatNotFoundError,
     IllegalValueError,
-    InvalidDateFormatError,
     ValidationError,
 )
 
@@ -62,7 +61,7 @@ class CompetitionFormatsService:
             Optional[str]: The id of the created competition_format. None otherwise.
 
         Raises:
-            CompetitionFormatAllreadyExistError: A format with the same name allready exist
+            CompetitionFormatAlreadyExistError: A format with the same name already exist
             ValidationError: input object has illegal values
         """
         # Validate that the id is not set:
@@ -77,8 +76,8 @@ class CompetitionFormatsService:
             )
         )
         if _competition_formats:
-            raise CompetitionFormatAllreadyExistError(
-                f"Competition-format with name {competition_format.name} allready exist."
+            raise CompetitionFormatAlreadyExistError(
+                f"Competition-format with name {competition_format.name} already exist."
             ) from None
         # create id
         id = create_id()
@@ -86,7 +85,7 @@ class CompetitionFormatsService:
 
         # Validation:
         try:
-            await validate_competition_format(competition_format)
+            await cls.validate_competition_format(competition_format)
         except ValidationError as e:
             raise e from e
 
@@ -177,7 +176,7 @@ class CompetitionFormatsService:
     ) -> Optional[str]:
         """Get competition_format function."""
         # Validate:
-        await validate_competition_format(competition_format)
+        await cls.validate_competition_format(competition_format)
         # get old document
         old_competition_format = (
             await CompetitionFormatsAdapter.get_competition_format_by_id(db, id)
@@ -222,44 +221,122 @@ class CompetitionFormatsService:
             f"CompetitionFormat with id {id} not found"
         ) from None
 
+    @classmethod
+    async def validate_competition_format(  # noqa: C901
+        cls: Any,
+        competition_format: Union[IndividualSprintFormat, IntervalStartFormat],
+    ) -> None:  # pragma: no cover
+        """Validate the competition-format."""
+        # Max number of contestants in race must be greater than zero:
+        if competition_format.max_no_of_contestants_in_race <= 0:
+            raise IllegalValueError(
+                "Max number of contestants in race must be greater than zero."
+            ) from None
+        # Max number of contestants in raceclass must be greater than zero:
+        if competition_format.max_no_of_contestants_in_raceclass <= 0:
+            raise IllegalValueError(
+                "Max number of contestants in raceclass must be greater than zero."
+            ) from None
 
-#   Validation:
-async def validate_competition_format(  # noqa: C901
-    competition_format: Union[IndividualSprintFormat, IntervalStartFormat],
-) -> None:
-    """Validate the competition-format."""
-    # Validate time_between_groups if set:
-    if hasattr(competition_format, "time_between_groups"):
-        try:
-            time.fromisoformat(competition_format.time_between_groups)  # type: ignore
-        except ValueError as e:
-            raise InvalidDateFormatError(
-                f'time_between_groups "{competition_format.time_between_groups}" has invalid time format.'  # noqa: B950
-            ) from e
-    # Validate intervals if set:
-    if type(competition_format) is IntervalStartFormat and hasattr(
-        competition_format, "intervals"
-    ):
-        try:
-            time.fromisoformat(competition_format.intervals)  # type: ignore
-        except ValueError as e:
-            raise InvalidDateFormatError(
-                f'intervals "{competition_format.intervals}" has invalid time format.'
-            ) from e
-    if type(competition_format) is IndividualSprintFormat:
-        # Validate time_between_rounds if set:
-        if hasattr(competition_format, "time_between_rounds"):
-            try:
-                time.fromisoformat(competition_format.time_between_rounds)  # type: ignore
-            except ValueError as e:
-                raise InvalidDateFormatError(
-                    f'intervals "{competition_format.time_between_rounds}" has invalid time format.'  # noqa: B950
-                ) from e
-        # Validate time_between_rounds if set:
-        if hasattr(competition_format, "time_between_heats"):
-            try:
-                time.fromisoformat(competition_format.time_between_heats)  # type: ignore
-            except ValueError as e:
-                raise InvalidDateFormatError(
-                    f'intervals "{competition_format.time_between_heats}" has invalid time format.'  # noqa: B950
-                ) from e
+        # Validate IntervalStartFormat:
+        if type(competition_format) == IntervalStartFormat:
+            if competition_format.intervals == 0:
+                raise IllegalValueError(
+                    "Intervals must be greater than zero."
+                ) from None
+
+        # Validate IndividualSprintFormat:
+        if type(competition_format) == IndividualSprintFormat:
+            if competition_format.time_between_heats == 0:
+                raise IllegalValueError(
+                    "Time between heats must be greater than zero."
+                ) from None
+
+            if (
+                hasattr(competition_format, "rounds_non_ranked_classes")
+                and competition_format.rounds_non_ranked_classes
+            ):
+                pass
+            else:
+                raise ValidationError(
+                    "Mandatory attbribute 'rounds_non_ranked_classes' missing."
+                )
+
+            if (
+                hasattr(competition_format, "rounds_ranked_classes")
+                and competition_format.rounds_ranked_classes
+            ):
+                pass
+            else:
+                raise ValidationError(
+                    "Mandatory attbribute 'rounds_ranked_classes' missing."
+                )
+
+            if (
+                hasattr(competition_format, "race_config_non_ranked")
+                and competition_format.race_config_non_ranked
+            ):
+                await cls.validate_race_config(
+                    max_no_of_contestants_in_raceclass=competition_format.max_no_of_contestants_in_raceclass,
+                    rounds=competition_format.rounds_non_ranked_classes,
+                    race_configs=competition_format.race_config_non_ranked,
+                )
+            else:
+                raise ValidationError(
+                    "Mandatory attbribute 'race_config_non_ranked' missing."
+                )
+
+            if (
+                hasattr(competition_format, "race_config_ranked")
+                and competition_format.race_config_ranked
+            ):
+                await cls.validate_race_config(
+                    max_no_of_contestants_in_raceclass=competition_format.max_no_of_contestants_in_raceclass,
+                    rounds=competition_format.rounds_ranked_classes,
+                    race_configs=competition_format.race_config_ranked,
+                )
+            else:
+                raise ValidationError(
+                    "Mandatory attbribute 'race_config_non_ranked' missing."
+                )
+
+    @classmethod
+    async def validate_race_config(  # noqa: C901
+        cls: Any,
+        max_no_of_contestants_in_raceclass: int,
+        rounds: List,
+        race_configs: List[RaceConfig],
+    ) -> None:  # pragma: no cover
+        """Validate the competition-format."""
+        for race_config in race_configs:
+            # Max number of contestants must be greater than zero:
+            if race_config.max_no_of_contestants <= 0:
+                raise IllegalValueError(
+                    "Max number of contestants must be greater than zero."
+                ) from None
+            # Max number of contestants must be less than
+            # or equal to max_no_of_contestants_in_race:
+            if race_config.max_no_of_contestants > max_no_of_contestants_in_raceclass:
+                raise IllegalValueError(
+                    "Max number of contestants in race_config must not be greater than max number of contestants in race."  # noqa: B950
+                ) from None
+            # Every round must in race_config_non_ranked must correspond to a round in rounds:
+            for round in race_config.rounds:
+                if round not in rounds:
+                    raise IllegalValueError(
+                        f"Round {round} not found in rounds on competition_format."
+                    ) from None
+            # Every key in no_of_heats must be in rounds:
+            for key in race_config.no_of_heats.keys():
+                if key not in rounds:
+                    raise IllegalValueError(
+                        f"Round {key} in no_of_heats not found in rounds on race_config."
+                    ) from None
+            # Number of heats must be greater than zero:
+            for _round in race_config.no_of_heats.values():
+                for _no_of_heat in _round.values():
+                    if _no_of_heat < 0:
+                        raise IllegalValueError(
+                            f"Config with key {race_config.max_no_of_contestants}:"
+                            " Number of heats must not be less than zero."
+                        ) from None
