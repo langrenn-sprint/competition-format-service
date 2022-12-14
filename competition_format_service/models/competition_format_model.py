@@ -29,6 +29,7 @@ class CompetitionFormat(DataClassJsonMixin, ABC):  # noqa: B024
             mm_field=Time(format="iso"),
         )
     )
+    timezone: str  # "Europe/Oslo"
 
 
 @dataclass
