@@ -276,7 +276,6 @@ async def test_get_competition_format_by_id(
         body["max_no_of_contestants_in_race"]
         == competition_format_individual_sprint["max_no_of_contestants_in_race"]
     )
-    assert body["timezone"] == competition_format_individual_sprint["timezone"]
     # Check that the race_config_non_ranked is sorted on max_no_of_contestants:
     assert all(
         body["race_config_non_ranked"][i]["max_no_of_contestants"]

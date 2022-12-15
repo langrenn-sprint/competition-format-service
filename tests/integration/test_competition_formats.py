@@ -41,7 +41,6 @@ async def competition_format_interval_start() -> Dict[str, Union[int, str]]:
         "intervals": "00:00:30",
         "max_no_of_contestants_in_raceclass": 9999,
         "max_no_of_contestants_in_race": 9999,
-        "timezone": "Europe/Oslo",
         "datatype": "interval_start",
     }
 
@@ -60,7 +59,6 @@ async def competition_format_individual_sprint() -> Dict[str, Any]:
         "max_no_of_contestants_in_race": 10,
         "rounds_ranked_classes": ["Q", "S", "F"],
         "rounds_non_ranked_classes": ["R1", "R2"],
-        "timezone": "Europe/Oslo",
         "datatype": "individual_sprint",
         "race_config_non_ranked": [
             {
@@ -418,7 +416,6 @@ async def test_get_competition_format_individual_sprint_by_id(
             body["max_no_of_contestants_in_race"]
             == competition_format_individual_sprint["max_no_of_contestants_in_race"]
         )
-        assert body["timezone"] == competition_format_individual_sprint["timezone"]
 
 
 @pytest.mark.integration
@@ -640,46 +637,6 @@ async def test_delete_competition_format_by_id(
 
 
 # Bad cases
-
-
-@pytest.mark.integration
-async def test_create_competition_format_interval_start_invalid_timezone(
-    client: _TestClient,
-    mocker: MockFixture,
-    token: MockFixture,
-    competition_format_interval_start: dict,
-) -> None:
-    """Should return 400 Bad request."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
-    mocker.patch(
-        "competition_format_service.services.competition_formats_service.create_id",
-        return_value=ID,
-    )
-    mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",  # noqa: B950
-        return_value=[],
-    )
-    mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",  # noqa: B950
-        return_value=ID,
-    )
-
-    cfis_bad_timezone = deepcopy(competition_format_interval_start)
-    cfis_bad_timezone["timezone"] = "Europe/NotATimezone"
-
-    request_body = cfis_bad_timezone
-
-    headers = {
-        hdrs.CONTENT_TYPE: "application/json",
-        hdrs.AUTHORIZATION: f"Bearer {token}",
-    }
-
-    with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
-        resp = await client.post(
-            "/competition-formats", headers=headers, json=request_body
-        )
-        assert resp.status == 422
 
 
 @pytest.mark.integration

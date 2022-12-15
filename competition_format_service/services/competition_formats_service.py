@@ -2,7 +2,6 @@
 import logging
 from typing import Any, List, Optional, Union
 import uuid
-import zoneinfo
 
 from competition_format_service.adapters import CompetitionFormatsAdapter
 from competition_format_service.models import (
@@ -238,11 +237,7 @@ class CompetitionFormatsService:
             raise IllegalValueError(
                 "Max number of contestants in raceclass must be greater than zero."
             ) from None
-        # Validate Timezone:
-        if competition_format.timezone not in zoneinfo.available_timezones():
-            raise IllegalValueError(
-                f"Invalid timezone: {competition_format.timezone}."
-            ) from None
+
         # Validate IntervalStartFormat:
         if type(competition_format) == IntervalStartFormat:
             if competition_format.intervals == 0:

@@ -27,7 +27,6 @@ async def test_competition_format_service_with_valid_interval_start_format() -> 
         max_no_of_contestants_in_raceclass=1,
         time_between_groups=time.fromisoformat("00:01:00"),
         intervals=time.fromisoformat("00:00:30"),
-        timezone="Europe/Oslo",
     )
     try:
         await CompetitionFormatsService.validate_competition_format(
@@ -51,7 +50,6 @@ async def test_validate_competition_format_valid_individual_sprint_format() -> N
         time_between_heats=time.fromisoformat("00:00:30"),
         rounds_non_ranked_classes=["R1", "R2"],
         rounds_ranked_classes=["R1", "R2"],
-        timezone="Europe/Oslo",
         race_config_non_ranked=[
             RaceConfig(
                 max_no_of_contestants=1,
@@ -94,7 +92,6 @@ async def test_validate_competition_format_individual_sprint_format_no_time_betw
         rounds_ranked_classes=["Test"],
         race_config_non_ranked=None,  # type: ignore
         race_config_ranked=None,  # type: ignore
-        timezone="Europe/Oslo",
     )
 
     with pytest.raises(ValidationError):
@@ -117,7 +114,6 @@ async def test_validate_competition_format_individual_sprint_format_without_roun
         time_between_heats=time.fromisoformat("00:00:30"),
         rounds_non_ranked_classes=[],
         rounds_ranked_classes=[],
-        timezone="Europe/Oslo",
         race_config_non_ranked=[
             RaceConfig(
                 max_no_of_contestants=1,
@@ -158,7 +154,6 @@ async def test_validate_competition_format_individual_sprint_format_without_race
         rounds_ranked_classes=["Test"],
         race_config_non_ranked=None,  # type: ignore
         race_config_ranked=None,  # type: ignore
-        timezone="Europe/Oslo",
     )
 
     with pytest.raises(ValidationError):
@@ -183,7 +178,6 @@ async def test_validate_competition_format_individual_sprint_format_with_empty_r
         rounds_ranked_classes=["Test"],
         race_config_non_ranked=[],
         race_config_ranked=[],
-        timezone="Europe/Oslo",
     )
 
     with pytest.raises(ValidationError):
@@ -205,7 +199,6 @@ async def test_validate_race_config_() -> None:  # noqa: B950
         time_between_rounds=time.fromisoformat("00:00:30"),
         time_between_heats=time.fromisoformat("00:00:30"),
         rounds_non_ranked_classes=["Test"],
-        timezone="Europe/Oslo",
         rounds_ranked_classes=["R1", "R2"],
         race_config_non_ranked=[
             RaceConfig(
