@@ -141,6 +141,7 @@ def contract_tests(session: Session) -> None:
             "USERS_HOST_PORT": "8081",
             "JWT_SECRET": "secret",
             "JWT_EXP_DELTA_SECONDS": "60",
+            "DB_NAME": "competition_formats_service",
             "DB_USER": "competition-format-service",
             "DB_PASSWORD": "password",
             "LOGGING_LEVEL": "DEBUG",
