@@ -8,11 +8,17 @@ from typing import Any, AsyncGenerator
 from urllib.parse import quote
 
 from aiohttp import ClientSession, ContentTypeError, hdrs
+import motor.motor_asyncio
 import pytest
 from pytest_mock import MockFixture
 
 USERS_HOST_SERVER = os.getenv("USERS_HOST_SERVER")
 USERS_HOST_PORT = os.getenv("USERS_HOST_PORT")
+DB_HOST = os.getenv("DB_HOST", "localhost")
+DB_PORT = int(os.getenv("DB_PORT", 27017))
+DB_NAME = os.getenv("DB_NAME")
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
 
 
 @pytest.fixture(scope="module")
@@ -21,50 +27,6 @@ def event_loop(request: Any) -> Any:
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
-
-
-@pytest.fixture(scope="module")
-@pytest.mark.asyncio
-async def clear_db(http_service: Any, token: MockFixture) -> AsyncGenerator:
-    """Clear DB before and after tests."""
-    await delete_competition_formats(http_service, token)
-    yield
-    await delete_competition_formats(http_service, token)
-
-
-async def delete_competition_formats(http_service: Any, token: MockFixture) -> None:
-    """Delete all competition_formats before we start."""
-    url = f"{http_service}/competition-formats"
-    headers = {
-        hdrs.AUTHORIZATION: f"Bearer {token}",
-    }
-
-    session = ClientSession()
-    async with session.get(url) as response:
-        competition_formats = await response.json()
-        for competition_format in competition_formats:
-            competition_format_id = competition_format["id"]
-            async with session.delete(
-                f"{url}/{competition_format_id}", headers=headers
-            ) as response:
-                pass
-    await session.close()
-
-
-@pytest.fixture(scope="module")
-async def competition_format_interval_start() -> dict:
-    """An competition_format object for testing."""
-    with open("tests/files/competition_format_interval_start.json", "r") as file:
-        competition_format = load(file)
-    return competition_format
-
-
-@pytest.fixture(scope="module")
-async def competition_format_individual_sprint() -> dict:
-    """An competition_format object for testing."""
-    with open("tests/files/competition_format_individual_sprint.json", "r") as file:
-        competition_format = load(file)
-    return competition_format
 
 
 @pytest.fixture(scope="module")
@@ -84,6 +46,49 @@ async def token(http_service: Any) -> str:
     if response.status != 200:
         logging.error(f"Got unexpected status {response.status} from {http_service}.")
     return body["token"]
+
+
+@pytest.fixture(autouse=True)
+@pytest.mark.asyncio
+async def clear_db(http_service: Any, token: MockFixture) -> AsyncGenerator:
+    """Clear db before and after tests."""
+    logging.info(" --- Cleaning db at startup. ---")
+    mongo = motor.motor_asyncio.AsyncIOMotorClient(
+        host=DB_HOST, port=DB_PORT, username=DB_USER, password=DB_PASSWORD
+    )
+    try:
+        await mongo.drop_database(f"{DB_NAME}")
+    except Exception as error:
+        logging.error(f"Failed to drop database {DB_NAME}: {error}")
+        raise error
+    logging.info(" --- Testing starts. ---")
+
+    yield
+
+    logging.info(" --- Testing finished. ---")
+    logging.info(" --- Cleaning db after testing. ---")
+    try:
+        await mongo.drop_database(f"{DB_NAME}")
+    except Exception as error:
+        logging.error(f"Failed to drop database {DB_NAME}: {error}")
+        raise error
+    logging.info(" --- Cleaning db done. ---")
+
+
+@pytest.fixture(scope="module")
+async def competition_format_interval_start() -> dict:
+    """An competition_format object for testing."""
+    with open("tests/files/competition_format_interval_start.json", "r") as file:
+        competition_format = load(file)
+    return competition_format
+
+
+@pytest.fixture(scope="module")
+async def competition_format_individual_sprint() -> dict:
+    """An competition_format object for testing."""
+    with open("tests/files/competition_format_individual_sprint.json", "r") as file:
+        competition_format = load(file)
+    return competition_format
 
 
 @pytest.mark.contract
