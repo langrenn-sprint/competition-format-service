@@ -92,9 +92,9 @@ class CompetitionFormatsView(View):
                     db, competition_format
                 )
             )
-        except (CompetitionFormatAlreadyExistError) as e:
+        except CompetitionFormatAlreadyExistError as e:
             raise HTTPBadRequest(reason=str(e)) from e
-        except (ValidationError) as e:
+        except ValidationError as e:
             raise HTTPUnprocessableEntity(reason=str(e)) from e
         if competition_format_id:
             logging.debug(

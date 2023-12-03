@@ -1,5 +1,4 @@
 """Contract test cases for competition-formats."""
-import asyncio
 from copy import deepcopy
 from json import load
 import logging
@@ -22,15 +21,7 @@ DB_PASSWORD = os.getenv("DB_PASSWORD")
 
 
 @pytest.fixture(scope="module")
-def event_loop(request: Any) -> Any:
-    """Redefine the event_loop fixture to have the same scope."""
-    loop = asyncio.get_event_loop_policy().new_event_loop()
-    yield loop
-    loop.close()
-
-
-@pytest.fixture(scope="module")
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope="module")
 async def token(http_service: Any) -> str:
     """Create a valid token."""
     url = f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/login"
@@ -48,12 +39,12 @@ async def token(http_service: Any) -> str:
     return body["token"]
 
 
-@pytest.fixture(autouse=True)
-@pytest.mark.asyncio
+@pytest.fixture(scope="module", autouse=True)
+@pytest.mark.asyncio(scope="module")
 async def clear_db(http_service: Any, token: MockFixture) -> AsyncGenerator:
     """Clear db before and after tests."""
     logging.info(" --- Cleaning db at startup. ---")
-    mongo = motor.motor_asyncio.AsyncIOMotorClient(
+    mongo = motor.motor_asyncio.AsyncIOMotorClient(  # type: ignore
         host=DB_HOST, port=DB_PORT, username=DB_USER, password=DB_PASSWORD
     )
     try:
@@ -76,6 +67,7 @@ async def clear_db(http_service: Any, token: MockFixture) -> AsyncGenerator:
 
 
 @pytest.fixture(scope="module")
+@pytest.mark.asyncio(scope="module")
 async def competition_format_interval_start() -> dict:
     """An competition_format object for testing."""
     with open("tests/files/competition_format_interval_start.json", "r") as file:
@@ -84,6 +76,7 @@ async def competition_format_interval_start() -> dict:
 
 
 @pytest.fixture(scope="module")
+@pytest.mark.asyncio(scope="module")
 async def competition_format_individual_sprint() -> dict:
     """An competition_format object for testing."""
     with open("tests/files/competition_format_individual_sprint.json", "r") as file:
@@ -92,7 +85,7 @@ async def competition_format_individual_sprint() -> dict:
 
 
 @pytest.mark.contract
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope="module")
 async def test_create_competition_format_interval_start(
     http_service: Any,
     token: MockFixture,
@@ -121,7 +114,7 @@ async def test_create_competition_format_interval_start(
 
 
 @pytest.mark.contract
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope="module")
 async def test_create_competition_format_individual_sprint(
     http_service: Any,
     token: MockFixture,
@@ -150,7 +143,7 @@ async def test_create_competition_format_individual_sprint(
 
 
 @pytest.mark.contract
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope="module")
 async def test_create_competition_format_individual_sprint_multiple_finals_1(
     http_service: Any,
     token: MockFixture,
@@ -184,7 +177,7 @@ async def test_create_competition_format_individual_sprint_multiple_finals_1(
 
 
 @pytest.mark.contract
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope="module")
 async def test_create_competition_format_individual_sprint_multiple_finals_2(
     http_service: Any,
     token: MockFixture,
@@ -218,7 +211,7 @@ async def test_create_competition_format_individual_sprint_multiple_finals_2(
 
 
 @pytest.mark.contract
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope="module")
 async def test_get_all_competition_formats(
     http_service: Any, token: MockFixture
 ) -> None:
@@ -237,7 +230,7 @@ async def test_get_all_competition_formats(
 
 
 @pytest.mark.contract
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope="module")
 async def test_get_competition_format_by_id(
     http_service: Any, token: MockFixture, competition_format_individual_sprint: dict
 ) -> None:
@@ -311,7 +304,7 @@ async def test_get_competition_format_by_id(
 
 
 @pytest.mark.contract
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope="module")
 async def test_get_competition_format_by_name_interval_start(
     http_service: Any, token: MockFixture, competition_format_interval_start: dict
 ) -> None:
@@ -340,7 +333,7 @@ async def test_get_competition_format_by_name_interval_start(
 
 
 @pytest.mark.contract
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope="module")
 async def test_get_competition_format_by_name_individual_sprint(
     http_service: Any, token: MockFixture, competition_format_individual_sprint: dict
 ) -> None:
@@ -412,7 +405,7 @@ async def test_get_competition_format_by_name_individual_sprint(
 
 
 @pytest.mark.contract
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope="module")
 async def test_update_competition_format_interval_start(
     http_service: Any, token: MockFixture, competition_format_interval_start: dict
 ) -> None:
@@ -445,7 +438,7 @@ async def test_update_competition_format_interval_start(
 
 
 @pytest.mark.contract
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope="module")
 async def test_update_competition_format_individual_sprint(
     http_service: Any, token: MockFixture, competition_format_individual_sprint: dict
 ) -> None:
@@ -503,7 +496,7 @@ async def test_update_competition_format_individual_sprint(
 
 
 @pytest.mark.contract
-@pytest.mark.asyncio
+@pytest.mark.asyncio(scope="module")
 async def test_delete_competition_format(http_service: Any, token: MockFixture) -> None:
     """Should return No Content."""
     url = f"{http_service}/competition-formats"

@@ -90,7 +90,7 @@ class CompetitionFormatsService:
             raise e from e
 
         # Sort the race_configs:
-        if type(competition_format) == IndividualSprintFormat:
+        if isinstance(competition_format, IndividualSprintFormat):
             competition_format.race_config_non_ranked.sort(
                 key=lambda k: (k.max_no_of_contestants,),
                 reverse=False,
@@ -188,7 +188,7 @@ class CompetitionFormatsService:
                     "Cannot change id for competition_format."
                 ) from None
             # Sort the race_configs:
-            if type(competition_format) == IndividualSprintFormat:
+            if isinstance(competition_format, IndividualSprintFormat):
                 competition_format.race_config_non_ranked.sort(
                     key=lambda k: (k.max_no_of_contestants,),
                     reverse=False,
@@ -239,14 +239,14 @@ class CompetitionFormatsService:
             ) from None
 
         # Validate IntervalStartFormat:
-        if type(competition_format) == IntervalStartFormat:
+        if isinstance(competition_format, IntervalStartFormat):
             if competition_format.intervals == 0:
                 raise IllegalValueError(
                     "Intervals must be greater than zero."
                 ) from None
 
         # Validate IndividualSprintFormat:
-        if type(competition_format) == IndividualSprintFormat:
+        if isinstance(competition_format, IndividualSprintFormat):
             if competition_format.time_between_heats == 0:
                 raise IllegalValueError(
                     "Time between heats must be greater than zero."
