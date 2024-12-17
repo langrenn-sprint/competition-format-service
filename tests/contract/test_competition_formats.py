@@ -1,4 +1,5 @@
 """Contract test cases for competition-formats."""
+
 from copy import deepcopy
 from json import load
 import logging

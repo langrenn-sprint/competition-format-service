@@ -1,4 +1,5 @@
 """Package for all services."""
+
 from .competition_formats_service import (
     CompetitionFormatsService,
 )

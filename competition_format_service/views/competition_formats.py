@@ -1,4 +1,5 @@
 """Resource module for competition_formats resources."""
+
 import json
 import logging
 import os
