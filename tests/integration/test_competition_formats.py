@@ -1,4 +1,5 @@
 """Integration test cases for the competition_formats route."""
+
 from copy import deepcopy
 import os
 from typing import Any, Dict, Union
@@ -986,9 +987,9 @@ async def test_create_competition_format_invalid_time_between_groups(
     competition_format_with_invalid_time_between_groups = deepcopy(
         competition_format_interval_start
     )
-    competition_format_with_invalid_time_between_groups[
-        "time_between_groups"
-    ] = "99:99:99"
+    competition_format_with_invalid_time_between_groups["time_between_groups"] = (
+        "99:99:99"
+    )
 
     headers = {
         hdrs.CONTENT_TYPE: "application/json",
@@ -1030,9 +1031,9 @@ async def test_create_competition_format_invalid_time_between_rounds(
     competition_format_with_invalid_time_between_rounds = deepcopy(
         competition_format_individual_sprint
     )
-    competition_format_with_invalid_time_between_rounds[
-        "time_between_rounds"
-    ] = "99:99:99"
+    competition_format_with_invalid_time_between_rounds["time_between_rounds"] = (
+        "99:99:99"
+    )
 
     headers = {
         hdrs.CONTENT_TYPE: "application/json",
@@ -1074,9 +1075,9 @@ async def test_create_competition_format_invalid_time_between_heats(
     competition_format_with_invalid_time_between_heats = deepcopy(
         competition_format_individual_sprint
     )
-    competition_format_with_invalid_time_between_heats[
-        "time_between_heats"
-    ] = "99:99:99"
+    competition_format_with_invalid_time_between_heats["time_between_heats"] = (
+        "99:99:99"
+    )
 
     headers = {
         hdrs.CONTENT_TYPE: "application/json",

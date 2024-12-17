@@ -1,4 +1,5 @@
 """Module for competition_formats service."""
+
 import logging
 from typing import Any, List, Optional, Union
 import uuid

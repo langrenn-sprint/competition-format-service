@@ -1,4 +1,5 @@
 """Unit test cases for the competition-format-service module."""
+
 from datetime import time
 
 import pytest
@@ -77,7 +78,9 @@ async def test_validate_competition_format_valid_individual_sprint_format() -> N
 
 
 @pytest.mark.unit
-async def test_validate_competition_format_individual_sprint_format_no_time_between_heats() -> None:  # noqa: B950
+async def test_validate_competition_format_individual_sprint_format_no_time_between_heats() -> (
+    None
+):  # noqa: B950
     """Should raise ValidationError."""
     competition_format: IndividualSprintFormat = IndividualSprintFormat(
         name="Test",
@@ -101,7 +104,9 @@ async def test_validate_competition_format_individual_sprint_format_no_time_betw
 
 
 @pytest.mark.unit
-async def test_validate_competition_format_individual_sprint_format_without_rounds() -> None:
+async def test_validate_competition_format_individual_sprint_format_without_rounds() -> (
+    None
+):
     """Should raise ValidationError."""
     competition_format: IndividualSprintFormat = IndividualSprintFormat(
         name="Test",
@@ -139,7 +144,9 @@ async def test_validate_competition_format_individual_sprint_format_without_roun
 
 
 @pytest.mark.unit
-async def test_validate_competition_format_individual_sprint_format_without_race_config() -> None:  # noqa: B950
+async def test_validate_competition_format_individual_sprint_format_without_race_config() -> (
+    None
+):  # noqa: B950
     """Should raise ValidationError."""
     competition_format: IndividualSprintFormat = IndividualSprintFormat(
         name="Test",
@@ -163,7 +170,9 @@ async def test_validate_competition_format_individual_sprint_format_without_race
 
 
 @pytest.mark.unit
-async def test_validate_competition_format_individual_sprint_format_with_empty_race_config() -> None:  # noqa: B950
+async def test_validate_competition_format_individual_sprint_format_with_empty_race_config() -> (  # noqa: B950
+    None
+):
     """Should raise ValidationError."""
     competition_format: IndividualSprintFormat = IndividualSprintFormat(
         name="Test",

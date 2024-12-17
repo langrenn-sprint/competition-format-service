@@ -1,4 +1,4 @@
-FROM python:3.11
+FROM python:3.12
 
 RUN mkdir -p /app
 WORKDIR /app
@@ -9,7 +9,7 @@ COPY poetry.lock pyproject.toml /app/
 
 # Project initialization:
 RUN poetry config virtualenvs.create false \
-  && poetry install --no-dev --no-interaction --no-ansi
+    && poetry install --no-dev --no-interaction --no-ansi
 
 ADD competition_format_service /app/competition_format_service
 
