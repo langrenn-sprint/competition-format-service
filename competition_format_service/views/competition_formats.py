@@ -3,7 +3,6 @@
 import json
 import logging
 import os
-from typing import Union
 
 from aiohttp import hdrs
 from aiohttp.web import (
@@ -27,6 +26,7 @@ from competition_format_service.services import (
     CompetitionFormatsService,
     ValidationError,
 )
+
 from .utils import extract_token_from_request
 
 load_dotenv()
@@ -55,13 +55,11 @@ class CompetitionFormatsView(View):
                 await CompetitionFormatsService.get_all_competition_formats(db)
             )
         # Create json representation
-        result = []
-        for _c in competition_formats:
-            result.append(_c.to_dict())
+        result = [_c.to_dict() for _c in competition_formats]
         body = json.dumps(result, default=str, ensure_ascii=False)
         return Response(status=200, body=body, content_type="application/json")
 
-    async def post(self) -> Response:  # noqa: C901
+    async def post(self) -> Response:
         """Post route function."""
         db = self.request.app["db"]
         token = extract_token_from_request(self.request)
@@ -75,7 +73,7 @@ class CompetitionFormatsView(View):
             f"Got create request for competition_format {body} of type {type(body)}"
         )
         try:
-            competition_format: Union[IndividualSprintFormat, IntervalStartFormat]
+            competition_format: IndividualSprintFormat | IntervalStartFormat
             if body["datatype"] == "interval_start":
                 competition_format = IntervalStartFormat.from_dict(body)
             elif body["datatype"] == "individual_sprint":
@@ -111,7 +109,7 @@ class CompetitionFormatsView(View):
             )
 
             return Response(status=201, headers=headers)
-        raise HTTPBadRequest() from None
+        raise HTTPBadRequest from None
 
 
 class CompetitionFormatView(View):
@@ -136,7 +134,7 @@ class CompetitionFormatView(View):
         body = competition_format.to_json()
         return Response(status=200, body=body, content_type="application/json")
 
-    async def put(self) -> Response:  # noqa: C901
+    async def put(self) -> Response:
         """Put route function."""
         db = self.request.app["db"]
         token = extract_token_from_request(self.request)
@@ -155,7 +153,7 @@ class CompetitionFormatView(View):
             f"Got put request for competition_format {body} of type {type(body)}"
         )
         try:
-            competition_format: Union[IndividualSprintFormat, IntervalStartFormat]
+            competition_format: IndividualSprintFormat | IntervalStartFormat
             if body["datatype"] == "interval_start":
                 competition_format = IntervalStartFormat.from_dict(body)
             elif body["datatype"] == "individual_sprint":

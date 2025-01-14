@@ -1,7 +1,7 @@
-"""Module for event adapter."""
+"""Module for competition_format adapter."""
 
 from abc import ABC, abstractmethod
-from typing import Any, List, Optional
+from typing import Any
 
 
 class Adapter(ABC):
@@ -9,42 +9,48 @@ class Adapter(ABC):
 
     @classmethod
     @abstractmethod
-    async def get_all_events(cls: Any, db: Any) -> List:  # pragma: no cover
-        """Get all events function."""
-        raise NotImplementedError() from None
+    async def get_all_competition_formats(
+        cls: Any, db: Any
+    ) -> list:  # pragma: no cover
+        """Get all competition_formats function."""
+        raise NotImplementedError from None
 
     @classmethod
     @abstractmethod
-    async def create_event(cls: Any, db: Any, event: dict) -> str:  # pragma: no cover
-        """Create event function."""
-        raise NotImplementedError() from None
+    async def create_competition_format(
+        cls: Any, db: Any, competition_format: dict
+    ) -> str:  # pragma: no cover
+        """Create competition_format function."""
+        raise NotImplementedError from None
 
     @classmethod
     @abstractmethod
-    async def get_event_by_id(cls: Any, db: Any, id: str) -> dict:  # pragma: no cover
-        """Get event by id function."""
-        raise NotImplementedError() from None
+    async def get_competition_format_by_id(
+        cls: Any, db: Any, competition_format_id: str
+    ) -> dict:  # pragma: no cover
+        """Get competition_format by id function."""
+        raise NotImplementedError from None
 
     @classmethod
     @abstractmethod
-    async def get_event_by_name(
+    async def get_competition_format_by_name(
         cls: Any, db: Any, name: str
     ) -> dict:  # pragma: no cover
-        """Get event function."""
-        raise NotImplementedError() from None
+        """Get competition_format function."""
+        raise NotImplementedError from None
 
     @classmethod
     @abstractmethod
-    async def update_event(
-        cls: Any, db: Any, id: str, event: dict
-    ) -> Optional[str]:  # pragma: no cover
-        """Get event function."""
-        raise NotImplementedError() from None
+    async def update_competition_format(
+        cls: Any, db: Any, competition_format_id: str, competition_format: dict
+    ) -> str | None:  # pragma: no cover
+        """Get competition_format function."""
+        raise NotImplementedError from None
 
     @classmethod
     @abstractmethod
-    async def delete_event(
-        cls: Any, db: Any, id: str
-    ) -> Optional[str]:  # pragma: no cover
-        """Get event function."""
-        raise NotImplementedError() from None
+    async def delete_competition_format(
+        cls: Any, db: Any, competition_format_id: str
+    ) -> str | None:  # pragma: no cover
+        """Get competition_format function."""
+        raise NotImplementedError from None

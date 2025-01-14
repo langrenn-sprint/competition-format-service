@@ -3,20 +3,20 @@
 from abc import ABC
 from dataclasses import dataclass, field
 from datetime import time
-from typing import Dict, List, Optional, Union
 
-from dataclasses_json import config, DataClassJsonMixin
+from dataclasses_json import DataClassJsonMixin, config
 from marshmallow.fields import Constant, Time
 
 
 @dataclass
-class CompetitionFormat(DataClassJsonMixin, ABC):  # noqa: B024
+class CompetitionFormat(DataClassJsonMixin, ABC):
     """Abstract data class with details about a competition-format."""
 
     def __post_init__(self) -> None:  # pragma: no cover
         """Prevent instantiate abstract class."""
         if self.__class__ == CompetitionFormat:
-            raise TypeError("Cannot instantiate abstract class.")
+            msg = "Cannot instantiate abstract class."
+            raise TypeError(msg) from None
 
     name: str
     start_procedure: str
@@ -44,10 +44,10 @@ class IntervalStartFormat(CompetitionFormat, DataClassJsonMixin):
         )
     )
     datatype: str = field(
-        metadata=dict(marshmallow_field=Constant("interval_start")),
+        metadata=dict(marshmallow_field=Constant("interval_start")),  # noqa: C408
         default="interval_start",
     )
-    id: Optional[str] = field(default=None)
+    id: str | None = field(default=None)
 
 
 @dataclass
@@ -55,9 +55,9 @@ class RaceConfig(DataClassJsonMixin):
     """Data class with details about the settings of a race."""
 
     max_no_of_contestants: int
-    rounds: List[str]
-    no_of_heats: Dict[str, Dict[str, int]]
-    from_to: Dict[str, Dict[str, Dict[str, Dict[str, Union[int, str]]]]]
+    rounds: list[str]
+    no_of_heats: dict[str, dict[str, int]]
+    from_to: dict[str, dict[str, dict[str, dict[str, int | str]]]]
 
 
 @dataclass
@@ -78,12 +78,12 @@ class IndividualSprintFormat(CompetitionFormat, DataClassJsonMixin):
             mm_field=Time(format="iso"),
         )
     )
-    rounds_ranked_classes: List[str]
-    rounds_non_ranked_classes: List[str]
-    race_config_ranked: List[RaceConfig]
-    race_config_non_ranked: List[RaceConfig]
+    rounds_ranked_classes: list[str]
+    rounds_non_ranked_classes: list[str]
+    race_config_ranked: list[RaceConfig]
+    race_config_non_ranked: list[RaceConfig]
     datatype: str = field(
-        metadata=dict(marshmallow_field=Constant("individual_sprint")),
+        metadata=dict(marshmallow_field=Constant("individual_sprint")),  # noqa: C408
         default="individual_sprint",
     )
-    id: Optional[str] = field(default=None)
+    id: str | None = field(default=None)

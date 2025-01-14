@@ -1,17 +1,20 @@
 """Integration test cases for the competition_formats route."""
 
-from copy import deepcopy
 import os
-from typing import Any, Dict, Union
+from copy import deepcopy
+from http import HTTPStatus
+from typing import Any
 
+import jwt
+import pytest
 from aiohttp import hdrs
 from aiohttp.test_utils import TestClient as _TestClient
 from aioresponses import aioresponses
-import jwt
 from multidict import MultiDict
-import pytest
 from pytest_mock import MockFixture
 
+USERS_HOST_SERVER = os.getenv("USERS_HOST_SERVER")
+USERS_HOST_PORT = os.getenv("USERS_HOST_PORT")
 
 @pytest.fixture
 def token() -> str:
@@ -19,7 +22,7 @@ def token() -> str:
     secret = os.getenv("JWT_SECRET")
     algorithm = "HS256"
     payload = {"identity": os.getenv("ADMIN_USERNAME"), "roles": ["admin"]}
-    return jwt.encode(payload, secret, algorithm)  # type: ignore
+    return jwt.encode(payload, secret, algorithm)
 
 
 @pytest.fixture
@@ -28,11 +31,11 @@ def token_unsufficient_role() -> str:
     secret = os.getenv("JWT_SECRET")
     algorithm = "HS256"
     payload = {"identity": "user", "roles": ["event-admin"]}
-    return jwt.encode(payload, secret, algorithm)  # type: ignore
+    return jwt.encode(payload, secret, algorithm)
 
 
 @pytest.fixture
-async def competition_format_interval_start() -> Dict[str, Union[int, str]]:
+async def competition_format_interval_start() -> dict[str, int | str]:
     """An competition_format object for testing."""
     return {
         "name": "Interval Start",
@@ -47,7 +50,7 @@ async def competition_format_interval_start() -> Dict[str, Union[int, str]]:
 
 
 @pytest.fixture
-async def competition_format_individual_sprint() -> Dict[str, Any]:
+async def competition_format_individual_sprint() -> dict[str, Any]:
     """An competition_format object for testing."""
     return {
         "name": "Individual Sprint",
@@ -264,18 +267,18 @@ async def test_create_competition_format_interval_start(
     competition_format_interval_start: dict,
 ) -> None:
     """Should return Created, location header."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
         "competition_format_service.services.competition_formats_service.create_id",
-        return_value=ID,
+        return_value=competition_format_id,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",  # noqa: B950
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",
         return_value=[],
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",  # noqa: B950
-        return_value=ID,
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",
+        return_value=competition_format_id,
     )
 
     request_body = competition_format_interval_start
@@ -286,12 +289,15 @@ async def test_create_competition_format_interval_start(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
         resp = await client.post(
             "/competition-formats", headers=headers, json=request_body
         )
-        assert resp.status == 201
-        assert f"/competition-formats/{ID}" in resp.headers[hdrs.LOCATION]
+        assert resp.status == HTTPStatus.CREATED
+        assert (
+            f"/competition-formats/{competition_format_id}"
+            in resp.headers[hdrs.LOCATION]
+        )
 
 
 @pytest.mark.integration
@@ -302,18 +308,18 @@ async def test_create_competition_format_individual_sprint(
     competition_format_individual_sprint: dict,
 ) -> None:
     """Should return Created, location header."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
         "competition_format_service.services.competition_formats_service.create_id",
-        return_value=ID,
+        return_value=competition_format_id,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",  # noqa: B950
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",
         return_value=[],
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",  # noqa: B950
-        return_value=ID,
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",
+        return_value=competition_format_id,
     )
 
     request_body = competition_format_individual_sprint
@@ -324,37 +330,39 @@ async def test_create_competition_format_individual_sprint(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
         resp = await client.post(
             "/competition-formats", headers=headers, json=request_body
         )
-        assert resp.status == 201
-        assert f"/competition-formats/{ID}" in resp.headers[hdrs.LOCATION]
+        assert resp.status == HTTPStatus.CREATED
+        assert (
+            f"/competition-formats/{competition_format_id}"
+            in resp.headers[hdrs.LOCATION]
+        )
 
 
 @pytest.mark.integration
 async def test_get_competition_format_interval_start_by_id(
     client: _TestClient,
     mocker: MockFixture,
-    token: MockFixture,
     competition_format_interval_start: dict,
 ) -> None:
     """Should return OK, and a body containing one competition_format."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",  # noqa: B950
-        return_value={"id": ID} | competition_format_interval_start,  # type: ignore
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",
+        return_value={"id": competition_format_id} | competition_format_interval_start,
     )
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
 
-        resp = await client.get(f"/competition-formats/{ID}")
-        assert resp.status == 200
+        resp = await client.get(f"/competition-formats/{competition_format_id}")
+        assert resp.status == HTTPStatus.OK
         assert "application/json" in resp.headers[hdrs.CONTENT_TYPE]
         body = await resp.json()
         assert type(body) is dict
-        assert body["id"] == ID
+        assert body["id"] == competition_format_id
         assert body["name"] == competition_format_interval_start["name"]
         assert (
             body["starting_order"]
@@ -371,25 +379,25 @@ async def test_get_competition_format_interval_start_by_id(
 async def test_get_competition_format_individual_sprint_by_id(
     client: _TestClient,
     mocker: MockFixture,
-    token: MockFixture,
     competition_format_individual_sprint: dict,
 ) -> None:
     """Should return OK, and a body containing one competition_format."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",  # noqa: B950
-        return_value={"id": ID} | competition_format_individual_sprint,  # type: ignore
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",
+        return_value={"id": competition_format_id}
+        | competition_format_individual_sprint,
     )
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
 
-        resp = await client.get(f"/competition-formats/{ID}")
-        assert resp.status == 200
+        resp = await client.get(f"/competition-formats/{competition_format_id}")
+        assert resp.status == HTTPStatus.OK
         assert "application/json" in resp.headers[hdrs.CONTENT_TYPE]
         body = await resp.json()
         assert type(body) is dict
-        assert body["id"] == ID
+        assert body["id"] == competition_format_id
         assert body["name"] == competition_format_individual_sprint["name"]
         assert (
             body["starting_order"]
@@ -423,26 +431,27 @@ async def test_get_competition_format_individual_sprint_by_id(
 async def test_get_competition_formats_by_name(
     client: _TestClient,
     mocker: MockFixture,
-    token: MockFixture,
     competition_format_interval_start: dict,
 ) -> None:
     """Should return OK, and a body containing one competition_format."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
-    NAME = competition_format_interval_start["name"]
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_name = competition_format_interval_start["name"]
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",  # noqa: B950
-        return_value=[{"id": ID} | competition_format_interval_start],  # type: ignore
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",
+        return_value=[
+            {"id": competition_format_id} | competition_format_interval_start
+        ],
     )
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
 
-        resp = await client.get(f"/competition-formats?name={NAME}")
-        assert resp.status == 200
+        resp = await client.get(f"/competition-formats?name={competition_format_name}")
+        assert resp.status == HTTPStatus.OK
         assert "application/json" in resp.headers[hdrs.CONTENT_TYPE]
         body = await resp.json()
         assert type(body) is list
-        assert body[0]["id"] == ID
+        assert body[0]["id"] == competition_format_id
         assert body[0]["name"] == competition_format_interval_start["name"]
         assert (
             body[0]["starting_order"]
@@ -459,26 +468,27 @@ async def test_get_competition_formats_by_name(
 async def test_get_competition_formats_by_name_individual_sprint(
     client: _TestClient,
     mocker: MockFixture,
-    token: MockFixture,
     competition_format_individual_sprint: dict,
 ) -> None:
     """Should return OK, and a body containing one competition_format."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
-    NAME = competition_format_individual_sprint["name"]
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_name = competition_format_individual_sprint["name"]
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",  # noqa: B950
-        return_value=[{"id": ID} | competition_format_individual_sprint],  # type: ignore
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",
+        return_value=[
+            {"id": competition_format_id} | competition_format_individual_sprint
+        ],
     )
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
 
-        resp = await client.get(f"/competition-formats?name={NAME}")
-        assert resp.status == 200
+        resp = await client.get(f"/competition-formats?name={competition_format_name}")
+        assert resp.status == HTTPStatus.OK
         assert "application/json" in resp.headers[hdrs.CONTENT_TYPE]
         body = await resp.json()
         assert type(body) is list
-        assert body[0]["id"] == ID
+        assert body[0]["id"] == competition_format_id
         assert body[0]["name"] == competition_format_individual_sprint["name"]
         assert (
             body[0]["starting_order"]
@@ -516,14 +526,14 @@ async def test_update_competition_format_interval_start(
     competition_format_interval_start: dict,
 ) -> None:
     """Should return No Content."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",  # noqa: B950
-        return_value={"id": ID} | competition_format_interval_start,  # type: ignore
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",
+        return_value={"id": competition_format_id} | competition_format_interval_start,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.update_competition_format",  # noqa: B950
-        return_value={"id": ID} | competition_format_interval_start,  # type: ignore
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.update_competition_format",
+        return_value={"id": competition_format_id} | competition_format_interval_start,
     )
 
     headers = {
@@ -532,16 +542,18 @@ async def test_update_competition_format_interval_start(
     }
     new_name = "Oslo Skagen competition-format"
     request_body = deepcopy(competition_format_interval_start)
-    request_body["id"] = ID
+    request_body["id"] = competition_format_id
     request_body["name"] = new_name
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
 
         resp = await client.put(
-            f"/competition-formats/{ID}", headers=headers, json=request_body
+            f"/competition-formats/{competition_format_id}",
+            headers=headers,
+            json=request_body,
         )
-        assert resp.status == 204
+        assert resp.status == HTTPStatus.NO_CONTENT
 
 
 @pytest.mark.integration
@@ -552,14 +564,16 @@ async def test_update_competition_format_individual_sprint(
     competition_format_individual_sprint: dict,
 ) -> None:
     """Should return No Content."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",  # noqa: B950
-        return_value={"id": ID} | competition_format_individual_sprint,  # type: ignore
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",
+        return_value={"id": competition_format_id}
+        | competition_format_individual_sprint,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.update_competition_format",  # noqa: B950
-        return_value={"id": ID} | competition_format_individual_sprint,  # type: ignore
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.update_competition_format",
+        return_value={"id": competition_format_id}
+        | competition_format_individual_sprint,
     )
 
     headers = {
@@ -568,45 +582,46 @@ async def test_update_competition_format_individual_sprint(
     }
     new_name = "Oslo Skagen competition-format"
     request_body = deepcopy(competition_format_individual_sprint)
-    request_body["id"] = ID
+    request_body["id"] = competition_format_id
     request_body["name"] = new_name
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
 
         resp = await client.put(
-            f"/competition-formats/{ID}", headers=headers, json=request_body
+            f"/competition-formats/{competition_format_id}",
+            headers=headers,
+            json=request_body,
         )
-        assert resp.status == 204
+        assert resp.status == HTTPStatus.NO_CONTENT
 
 
 @pytest.mark.integration
 async def test_get_all_competition_formats(
     client: _TestClient,
     mocker: MockFixture,
-    token: MockFixture,
     competition_format_interval_start: dict,
     competition_format_individual_sprint: dict,
 ) -> None:
     """Should return OK and a valid json body."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_all_competition_formats",  # noqa: B950
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_all_competition_formats",
         return_value=[
-            {"id": ID} | competition_format_interval_start,  # type: ignore
-            {"id": ID} | competition_format_individual_sprint,  # type: ignore
+            {"id": competition_format_id} | competition_format_interval_start,
+            {"id": competition_format_id} | competition_format_individual_sprint,
         ],
     )
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
         resp = await client.get("/competition-formats")
-        assert resp.status == 200
+        assert resp.status == HTTPStatus.OK
         assert "application/json" in resp.headers[hdrs.CONTENT_TYPE]
         body = await resp.json()
         assert type(body) is list
         assert len(body) > 0
-        assert ID == body[0]["id"]
+        assert body[0]["id"] == competition_format_id
 
 
 @pytest.mark.integration
@@ -617,24 +632,26 @@ async def test_delete_competition_format_by_id(
     competition_format_interval_start: dict,
 ) -> None:
     """Should return No Content."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",  # noqa: B950
-        return_value={"id": ID} | competition_format_interval_start,  # type: ignore
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",
+        return_value={"id": competition_format_id} | competition_format_interval_start,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.delete_competition_format",  # noqa: B950
-        return_value=ID,
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.delete_competition_format",
+        return_value=competition_format_id,
     )
     headers = {
         hdrs.AUTHORIZATION: f"Bearer {token}",
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
 
-        resp = await client.delete(f"/competition-formats/{ID}", headers=headers)
-        assert resp.status == 204
+        resp = await client.delete(
+            f"/competition-formats/{competition_format_id}", headers=headers
+        )
+        assert resp.status == HTTPStatus.NO_CONTENT
 
 
 # Bad cases
@@ -648,18 +665,18 @@ async def test_create_competition_format_interval_start_unknown_datatype(
     competition_format_interval_start: dict,
 ) -> None:
     """Should return Created, location header."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
         "competition_format_service.services.competition_formats_service.create_id",
-        return_value=ID,
+        return_value=competition_format_id,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",  # noqa: B950
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",
         return_value=[],
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",  # noqa: B950
-        return_value=ID,
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",
+        return_value=competition_format_id,
     )
 
     request_body = deepcopy(competition_format_interval_start)
@@ -671,11 +688,11 @@ async def test_create_competition_format_interval_start_unknown_datatype(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
         resp = await client.post(
             "/competition-formats", headers=headers, json=request_body
         )
-        assert resp.status == 400
+        assert resp.status == HTTPStatus.BAD_REQUEST
 
 
 @pytest.mark.integration
@@ -686,18 +703,18 @@ async def test_create_competition_format_interval_start_already_exist(
     competition_format_interval_start: dict,
 ) -> None:
     """Should return 400 Bad request entity."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
         "competition_format_service.services.competition_formats_service.create_id",
-        return_value=ID,
+        return_value=competition_format_id,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",  # noqa: B950
-        return_value=[{id: ID} | competition_format_interval_start],  # type: ignore
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",
+        return_value=[{id: competition_format_id} | competition_format_interval_start],
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",  # noqa: B950
-        return_value=ID,
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",
+        return_value=competition_format_id,
     )
 
     request_body = competition_format_interval_start
@@ -708,11 +725,11 @@ async def test_create_competition_format_interval_start_already_exist(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
         resp = await client.post(
             "/competition-formats", headers=headers, json=request_body
         )
-        assert resp.status == 400
+        assert resp.status == HTTPStatus.BAD_REQUEST
 
 
 # Mandatory properties missing at create and update:
@@ -724,18 +741,20 @@ async def test_create_competition_format_missing_mandatory_property(
     competition_format_interval_start: dict,
 ) -> None:
     """Should return 422 HTTPUnprocessableEntity."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
         "competition_format_service.services.competition_formats_service.create_id",
-        return_value=ID,
+        return_value=competition_format_id,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",  # noqa: B950
-        return_value=[{"id": ID} | competition_format_interval_start],  # type: ignore
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",
+        return_value=[
+            {"id": competition_format_id} | competition_format_interval_start
+        ],
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",  # noqa: B950
-        return_value=ID,
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",
+        return_value=competition_format_id,
     )
     request_body = {"optional_property": "Optional_property"}
     headers = {
@@ -744,11 +763,11 @@ async def test_create_competition_format_missing_mandatory_property(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
         resp = await client.post(
             "/competition-formats", headers=headers, json=request_body
         )
-        assert resp.status == 422
+        assert resp.status == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
 @pytest.mark.integration
@@ -759,31 +778,33 @@ async def test_create_competition_format_with_input_id(
     competition_format_interval_start: dict,
 ) -> None:
     """Should return 422 HTTPUnprocessableEntity."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
         "competition_format_service.services.competition_formats_service.create_id",
-        return_value=ID,
+        return_value=competition_format_id,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",  # noqa: B950
-        return_value=[{"id": ID} | competition_format_interval_start],  # type: ignore
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",
+        return_value=[
+            {"id": competition_format_id} | competition_format_interval_start
+        ],
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",  # noqa: B950
-        return_value=ID,
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",
+        return_value=competition_format_id,
     )
-    request_body = {"id": ID} | competition_format_interval_start  # type: ignore
+    request_body = {"id": competition_format_id} | competition_format_interval_start
     headers = {
         hdrs.CONTENT_TYPE: "application/json",
         hdrs.AUTHORIZATION: f"Bearer {token}",
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
         resp = await client.post(
             "/competition-formats", headers=headers, json=request_body
         )
-        assert resp.status == 422
+        assert resp.status == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
 @pytest.mark.integration
@@ -799,11 +820,11 @@ async def test_create_competition_format_adapter_fails(
         return_value=None,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",  # noqa: B950
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",
         return_value=[],
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",  # noqa: B950
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",
         return_value=None,
     )
     request_body = competition_format_interval_start
@@ -813,11 +834,11 @@ async def test_create_competition_format_adapter_fails(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
         resp = await client.post(
             "/competition-formats", headers=headers, json=request_body
         )
-        assert resp.status == 400
+        assert resp.status == HTTPStatus.BAD_REQUEST
 
 
 @pytest.mark.integration
@@ -828,14 +849,14 @@ async def test_update_competition_format_unknown_datatype(
     competition_format_interval_start: dict,
 ) -> None:
     """Should return No Content."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",  # noqa: B950
-        return_value={"id": ID} | competition_format_interval_start,  # type: ignore
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",
+        return_value={"id": competition_format_id} | competition_format_interval_start,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.update_competition_format",  # noqa: B950
-        return_value={"id": ID} | competition_format_interval_start,  # type: ignore
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.update_competition_format",
+        return_value={"id": competition_format_id} | competition_format_interval_start,
     )
 
     headers = {
@@ -846,12 +867,14 @@ async def test_update_competition_format_unknown_datatype(
     request_body["datatype"] = "unknown"
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
 
         resp = await client.put(
-            f"/competition-formats/{ID}", headers=headers, json=request_body
+            f"/competition-formats/{competition_format_id}",
+            headers=headers,
+            json=request_body,
         )
-        assert resp.status == 400
+        assert resp.status == HTTPStatus.BAD_REQUEST
 
 
 @pytest.mark.integration
@@ -862,29 +885,34 @@ async def test_update_competition_format_by_id_missing_mandatory_property(
     competition_format_interval_start: dict,
 ) -> None:
     """Should return 422 HTTPUnprocessableEntity."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",  # noqa: B950
-        return_value={"id": ID} | competition_format_interval_start,  # type: ignore
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",
+        return_value={"id": competition_format_id} | competition_format_interval_start,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.update_competition_format",  # noqa: B950
-        return_value=ID,
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.update_competition_format",
+        return_value=competition_format_id,
     )
 
     headers = {
         hdrs.CONTENT_TYPE: "application/json",
         hdrs.AUTHORIZATION: f"Bearer {token}",
     }
-    request_body = {"id": ID, "optional_property": "Optional_property"}
+    request_body = {
+        "id": competition_format_id,
+        "optional_property": "Optional_property",
+    }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
 
         resp = await client.put(
-            f"/competition-formats/{ID}", headers=headers, json=request_body
+            f"/competition-formats/{competition_format_id}",
+            headers=headers,
+            json=request_body,
         )
-        assert resp.status == 422
+        assert resp.status == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
 @pytest.mark.integration
@@ -895,29 +923,31 @@ async def test_update_competition_format_by_id_different_id_in_body(
     competition_format_interval_start: dict,
 ) -> None:
     """Should return 422 HTTPUnprocessableEntity."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",  # noqa: B950
-        return_value={"id": ID} | competition_format_interval_start,  # type: ignore
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",
+        return_value={"id": competition_format_id} | competition_format_interval_start,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.update_competition_format",  # noqa: B950
-        return_value=ID,
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.update_competition_format",
+        return_value=competition_format_id,
     )
 
     headers = {
         hdrs.CONTENT_TYPE: "application/json",
         hdrs.AUTHORIZATION: f"Bearer {token}",
     }
-    request_body = {"id": "different_id"} | competition_format_interval_start  # type: ignore
+    request_body = {"id": "different_id"} | competition_format_interval_start
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
 
         resp = await client.put(
-            f"/competition-formats/{ID}", headers=headers, json=request_body
+            f"/competition-formats/{competition_format_id}",
+            headers=headers,
+            json=request_body,
         )
-        assert resp.status == 422
+        assert resp.status == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
 @pytest.mark.integration
@@ -928,18 +958,18 @@ async def test_create_competition_format_invalid_intervals(
     competition_format_interval_start: dict,
 ) -> None:
     """Should return 422 Unprocessable Entity."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
         "competition_format_service.services.competition_formats_service.create_id",
-        return_value=ID,
+        return_value=competition_format_id,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",  # noqa: B950
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",
         return_value=[],
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",  # noqa: B950
-        return_value=ID,
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",
+        return_value=competition_format_id,
     )
 
     competition_format_with_invalid_intervals = deepcopy(
@@ -953,13 +983,13 @@ async def test_create_competition_format_invalid_intervals(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
         resp = await client.post(
             "/competition-formats",
             headers=headers,
             json=competition_format_with_invalid_intervals,
         )
-        assert resp.status == 422
+        assert resp.status == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
 @pytest.mark.integration
@@ -970,18 +1000,18 @@ async def test_create_competition_format_invalid_time_between_groups(
     competition_format_interval_start: dict,
 ) -> None:
     """Should return 422 Unprocessable Entity."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
         "competition_format_service.services.competition_formats_service.create_id",
-        return_value=ID,
+        return_value=competition_format_id,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",  # noqa: B950
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",
         return_value=[],
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",  # noqa: B950
-        return_value=ID,
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",
+        return_value=competition_format_id,
     )
 
     competition_format_with_invalid_time_between_groups = deepcopy(
@@ -997,13 +1027,13 @@ async def test_create_competition_format_invalid_time_between_groups(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
         resp = await client.post(
             "/competition-formats",
             headers=headers,
             json=competition_format_with_invalid_time_between_groups,
         )
-        assert resp.status == 422
+        assert resp.status == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
 @pytest.mark.integration
@@ -1014,18 +1044,18 @@ async def test_create_competition_format_invalid_time_between_rounds(
     competition_format_individual_sprint: dict,
 ) -> None:
     """Should return 422 Unprocessable Entity."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
         "competition_format_service.services.competition_formats_service.create_id",
-        return_value=ID,
+        return_value=competition_format_id,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",  # noqa: B950
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",
         return_value=[],
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",  # noqa: B950
-        return_value=ID,
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",
+        return_value=competition_format_id,
     )
 
     competition_format_with_invalid_time_between_rounds = deepcopy(
@@ -1041,13 +1071,13 @@ async def test_create_competition_format_invalid_time_between_rounds(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
         resp = await client.post(
             "/competition-formats",
             headers=headers,
             json=competition_format_with_invalid_time_between_rounds,
         )
-        assert resp.status == 422
+        assert resp.status == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
 @pytest.mark.integration
@@ -1058,25 +1088,25 @@ async def test_create_competition_format_invalid_time_between_heats(
     competition_format_individual_sprint: dict,
 ) -> None:
     """Should return 422 Unprocessable Entity."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
         "competition_format_service.services.competition_formats_service.create_id",
-        return_value=ID,
+        return_value=competition_format_id,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",  # noqa: B950
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",
         return_value=[],
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",  # noqa: B950
-        return_value=ID,
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",
+        return_value=competition_format_id,
     )
 
     competition_format_with_invalid_time_between_heats = deepcopy(
         competition_format_individual_sprint
     )
     competition_format_with_invalid_time_between_heats["time_between_heats"] = (
-        "99:99:99"
+        "00:00:00"
     )
 
     headers = {
@@ -1085,42 +1115,41 @@ async def test_create_competition_format_invalid_time_between_heats(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
         resp = await client.post(
             "/competition-formats",
             headers=headers,
             json=competition_format_with_invalid_time_between_heats,
         )
-        assert resp.status == 422
+        assert resp.status == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
 @pytest.mark.integration
-async def test_create_competition_format_no_race_config(
+async def test_create_competition_format_no_race_config_non_ranked(
     client: _TestClient,
     mocker: MockFixture,
     token: MockFixture,
     competition_format_individual_sprint: dict,
 ) -> None:
     """Should return 422 Unprocessable Entity."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
         "competition_format_service.services.competition_formats_service.create_id",
-        return_value=ID,
+        return_value=competition_format_id,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",  # noqa: B950
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",
         return_value=[],
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",  # noqa: B950
-        return_value=ID,
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",
+        return_value=competition_format_id,
     )
 
     competition_format_without_race_config = deepcopy(
         competition_format_individual_sprint
     )
-    competition_format_without_race_config["race_config_non_ranked"] = None
-    competition_format_without_race_config["race_config_ranked"] = None
+    competition_format_without_race_config["race_config_non_ranked"] = []
 
     headers = {
         hdrs.CONTENT_TYPE: "application/json",
@@ -1128,14 +1157,136 @@ async def test_create_competition_format_no_race_config(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
         resp = await client.post(
             "/competition-formats",
             headers=headers,
             json=competition_format_without_race_config,
         )
-        assert resp.status == 422
+        assert resp.status == HTTPStatus.UNPROCESSABLE_ENTITY
 
+@pytest.mark.integration
+async def test_create_competition_format_no_race_config_ranked(
+    client: _TestClient,
+    mocker: MockFixture,
+    token: MockFixture,
+    competition_format_individual_sprint: dict,
+) -> None:
+    """Should return 422 Unprocessable Entity."""
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    mocker.patch(
+        "competition_format_service.services.competition_formats_service.create_id",
+        return_value=competition_format_id,
+    )
+    mocker.patch(
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",
+        return_value=[],
+    )
+    mocker.patch(
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",
+        return_value=competition_format_id,
+    )
+
+    competition_format_without_race_config = deepcopy(
+        competition_format_individual_sprint
+    )
+    competition_format_without_race_config["race_config_ranked"] = []
+
+    headers = {
+        hdrs.CONTENT_TYPE: "application/json",
+        hdrs.AUTHORIZATION: f"Bearer {token}",
+    }
+
+    with aioresponses(passthrough=["http://127.0.0.1"]) as m:
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        resp = await client.post(
+            "/competition-formats",
+            headers=headers,
+            json=competition_format_without_race_config,
+        )
+        assert resp.status == HTTPStatus.UNPROCESSABLE_ENTITY
+
+@pytest.mark.integration
+async def test_create_competition_format_no_rounds_non_ranked_classes(
+    client: _TestClient,
+    mocker: MockFixture,
+    token: MockFixture,
+    competition_format_individual_sprint: dict,
+) -> None:
+    """Should return 422 Unprocessable Entity."""
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    mocker.patch(
+        "competition_format_service.services.competition_formats_service.create_id",
+        return_value=competition_format_id,
+    )
+    mocker.patch(
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",
+        return_value=[],
+    )
+    mocker.patch(
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",
+        return_value=competition_format_id,
+    )
+
+    competition_format_without_race_config = deepcopy(
+        competition_format_individual_sprint
+    )
+    competition_format_without_race_config["rounds_non_ranked_classes"] = []
+
+    headers = {
+        hdrs.CONTENT_TYPE: "application/json",
+        hdrs.AUTHORIZATION: f"Bearer {token}",
+    }
+
+    with aioresponses(passthrough=["http://127.0.0.1"]) as m:
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        resp = await client.post(
+            "/competition-formats",
+            headers=headers,
+            json=competition_format_without_race_config,
+        )
+        assert resp.status == HTTPStatus.UNPROCESSABLE_ENTITY
+
+@pytest.mark.integration
+async def test_create_competition_format_no_rounds_ranked_classes(
+    client: _TestClient,
+    mocker: MockFixture,
+    token: MockFixture,
+    competition_format_individual_sprint: dict,
+) -> None:
+    """Should return 422 Unprocessable Entity."""
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    mocker.patch(
+        "competition_format_service.services.competition_formats_service.create_id",
+        return_value=competition_format_id,
+    )
+    mocker.patch(
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",
+        return_value=[],
+    )
+    mocker.patch(
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",
+        return_value=competition_format_id,
+    )
+
+    competition_format_without_race_config = deepcopy(
+        competition_format_individual_sprint
+    )
+    competition_format_without_race_config["rounds_ranked_classes"] = []
+
+    headers = {
+        hdrs.CONTENT_TYPE: "application/json",
+        hdrs.AUTHORIZATION: f"Bearer {token}",
+    }
+
+    with aioresponses(passthrough=["http://127.0.0.1"]) as m:
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        resp = await client.post(
+            "/competition-formats",
+            headers=headers,
+            json=competition_format_without_race_config,
+        )
+        assert resp.status == HTTPStatus.UNPROCESSABLE_ENTITY
 
 @pytest.mark.integration
 async def test_update_competition_format_invalid_interval(
@@ -1145,14 +1296,14 @@ async def test_update_competition_format_invalid_interval(
     competition_format_interval_start: dict,
 ) -> None:
     """Should return 422 Unprocessable Entity."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",  # noqa: B950
-        return_value={"id": ID} | competition_format_interval_start,  # type: ignore
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",
+        return_value={"id": competition_format_id} | competition_format_interval_start,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.update_competition_format",  # noqa: B950
-        return_value={"id": ID} | competition_format_interval_start,  # type: ignore
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.update_competition_format",
+        return_value={"id": competition_format_id} | competition_format_interval_start,
     )
 
     headers = {
@@ -1160,18 +1311,18 @@ async def test_update_competition_format_invalid_interval(
         hdrs.AUTHORIZATION: f"Bearer {token}",
     }
     updated_competition_format = deepcopy(competition_format_interval_start)
-    updated_competition_format["id"] = ID
+    updated_competition_format["id"] = competition_format_id
     updated_competition_format["intervals"] = "99:99:99"
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
 
         resp = await client.put(
-            f"/competition-formats/{ID}",
+            f"/competition-formats/{competition_format_id}",
             headers=headers,
             json=updated_competition_format,
         )
-        assert resp.status == 422
+        assert resp.status == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
 # Unauthorized cases:
@@ -1182,30 +1333,32 @@ async def test_create_competition_format_no_authorization(
     client: _TestClient, mocker: MockFixture, competition_format_interval_start: dict
 ) -> None:
     """Should return 401 Unauthorized."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
         "competition_format_service.services.competition_formats_service.create_id",
-        return_value=ID,
+        return_value=competition_format_id,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",  # noqa: B950
-        return_value=[{"id": ID} | competition_format_interval_start],  # type: ignore
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",
+        return_value=[
+            {"id": competition_format_id} | competition_format_interval_start
+        ],
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",  # noqa: B950
-        return_value=ID,
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",
+        return_value=competition_format_id,
     )
 
     request_body = {"name": "Oslo Skagen sprint"}
     headers = MultiDict([(hdrs.CONTENT_TYPE, "application/json")])
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=401)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=401)
 
         resp = await client.post(
             "/competition-formats", headers=headers, json=request_body
         )
-        assert resp.status == 401
+        assert resp.status == HTTPStatus.UNAUTHORIZED
 
 
 @pytest.mark.integration
@@ -1215,29 +1368,31 @@ async def test_update_competition_format_by_id_no_authorization(
     competition_format_interval_start: dict,
 ) -> None:
     """Should return 401 Unauthorized."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",  # noqa: B950
-        return_value={"id": ID} | competition_format_interval_start,  # type: ignore
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",
+        return_value={"id": competition_format_id} | competition_format_interval_start,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.update_competition_format",  # noqa: B950
-        return_value=ID,
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.update_competition_format",
+        return_value=competition_format_id,
     )
 
     headers = {
         hdrs.CONTENT_TYPE: "application/json",
     }
 
-    request_body = {"id": ID, "name": "Oslo Skagen sprint Oppdatert"}
+    request_body = {"id": competition_format_id, "name": "Oslo Skagen sprint Oppdatert"}
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=401)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=401)
 
         resp = await client.put(
-            f"/competition-formats/{ID}", headers=headers, json=request_body
+            f"/competition-formats/{competition_format_id}",
+            headers=headers,
+            json=request_body,
         )
-        assert resp.status == 401
+        assert resp.status == HTTPStatus.UNAUTHORIZED
 
 
 @pytest.mark.integration
@@ -1245,17 +1400,17 @@ async def test_delete_competition_format_by_id_no_authorization(
     client: _TestClient, mocker: MockFixture
 ) -> None:
     """Should return 401 Unauthorized."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.delete_competition_format",  # noqa: B950
-        return_value=ID,
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.delete_competition_format",
+        return_value=competition_format_id,
     )
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=401)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=401)
 
-        resp = await client.delete(f"/competition-formats/{ID}")
-        assert resp.status == 401
+        resp = await client.delete(f"/competition-formats/{competition_format_id}")
+        assert resp.status == HTTPStatus.UNAUTHORIZED
 
 
 # Forbidden:
@@ -1267,18 +1422,20 @@ async def test_create_competition_format_insufficient_role(
     competition_format_interval_start: dict,
 ) -> None:
     """Should return 403 Forbidden."""
-    ID = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
+    competition_format_id = "290e70d5-0933-4af0-bb53-1d705ba7eb95"
     mocker.patch(
         "competition_format_service.services.competition_formats_service.create_id",
-        return_value=ID,
+        return_value=competition_format_id,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",  # noqa: B950
-        return_value=[{"id": ID} | competition_format_interval_start],  # type: ignore
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",
+        return_value=[
+            {"id": competition_format_id} | competition_format_interval_start
+        ],
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",  # noqa: B950
-        return_value=ID,
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.create_competition_format",
+        return_value=competition_format_id,
     )
     request_body = {"name": "Oslo Skagen sprint"}
     headers = {
@@ -1287,11 +1444,11 @@ async def test_create_competition_format_insufficient_role(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=403)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=403)
         resp = await client.post(
             "/competition-formats", headers=headers, json=request_body
         )
-        assert resp.status == 403
+        assert resp.status == HTTPStatus.FORBIDDEN
 
 
 # NOT FOUND CASES:
@@ -1299,38 +1456,39 @@ async def test_create_competition_format_insufficient_role(
 
 @pytest.mark.integration
 async def test_get_competition_format_not_found(
-    client: _TestClient, mocker: MockFixture, token: MockFixture
+    client: _TestClient,
+    mocker: MockFixture,
 ) -> None:
     """Should return 404 Not found."""
-    ID = "does-not-exist"
+    competition_format_id = "does-not-exist"
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",  # noqa: B950
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",
         return_value=None,
     )
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
 
-        resp = await client.get(f"/competition-formats/{ID}")
-        assert resp.status == 404
+        resp = await client.get(f"/competition-formats/{competition_format_id}")
+        assert resp.status == HTTPStatus.NOT_FOUND
 
 
 @pytest.mark.integration
 async def test_get_competition_formats_by_name_not_found(
-    client: _TestClient, mocker: MockFixture, token: MockFixture
+    client: _TestClient, mocker: MockFixture
 ) -> None:
     """Should return 200 OK and empty list."""
-    NAME = "does-not-exist"
+    competition_format_name = "does-not-exist"
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",  # noqa: B950
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_formats_by_name",
         return_value=[],
     )
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
 
-        resp = await client.get(f"/competition-formats?name={NAME}")
-        assert resp.status == 200
+        resp = await client.get(f"/competition-formats?name={competition_format_name}")
+        assert resp.status == HTTPStatus.OK
         body = await resp.json()
         assert type(body) is list
         assert len(body) == 0
@@ -1344,13 +1502,13 @@ async def test_update_competition_format_not_found(
     competition_format_interval_start: dict,
 ) -> None:
     """Should return 404 Not found."""
-    ID = "does-not-exist"
+    competition_format_id = "does-not-exist"
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",  # noqa: B950
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",
         return_value=None,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.update_competition_format",  # noqa: B950
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.update_competition_format",
         return_value=None,
     )
 
@@ -1360,13 +1518,14 @@ async def test_update_competition_format_not_found(
     }
     request_body = competition_format_interval_start
 
-    ID = "does-not-exist"
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
+        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
         resp = await client.put(
-            f"/competition-formats/{ID}", headers=headers, json=request_body
+            f"/competition-formats/{competition_format_id}",
+            headers=headers,
+            json=request_body,
         )
-        assert resp.status == 404
+        assert resp.status == HTTPStatus.NOT_FOUND
 
 
 @pytest.mark.integration
@@ -1374,13 +1533,13 @@ async def test_delete_competition_format_not_found(
     client: _TestClient, mocker: MockFixture, token: MockFixture
 ) -> None:
     """Should return 404 Not found."""
-    ID = "does-not-exist"
+    competition_format_id = "does-not-exist"
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",  # noqa: B950
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.get_competition_format_by_id",
         return_value=None,
     )
     mocker.patch(
-        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.delete_competition_format",  # noqa: B950
+        "competition_format_service.adapters.competition_formats_adapter.CompetitionFormatsAdapter.delete_competition_format",
         return_value=None,
     )
 
@@ -1389,6 +1548,8 @@ async def test_delete_competition_format_not_found(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post("http://example.com:8081/authorize", status=204)
-        resp = await client.delete(f"/competition-formats/{ID}", headers=headers)
-        assert resp.status == 404
+        m.post("http://localhost:8081/authorize", status=HTTPStatus.NO_CONTENT)
+        resp = await client.delete(
+            f"/competition-formats/{competition_format_id}", headers=headers
+        )
+        assert resp.status == HTTPStatus.NOT_FOUND

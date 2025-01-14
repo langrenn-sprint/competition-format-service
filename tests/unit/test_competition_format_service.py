@@ -4,7 +4,6 @@ from datetime import time
 
 import pytest
 
-
 from competition_format_service.models import (
     IndividualSprintFormat,
     IntervalStartFormat,
@@ -80,7 +79,7 @@ async def test_validate_competition_format_valid_individual_sprint_format() -> N
 @pytest.mark.unit
 async def test_validate_competition_format_individual_sprint_format_no_time_between_heats() -> (
     None
-):  # noqa: B950
+):
     """Should raise ValidationError."""
     competition_format: IndividualSprintFormat = IndividualSprintFormat(
         name="Test",
@@ -93,8 +92,8 @@ async def test_validate_competition_format_individual_sprint_format_no_time_betw
         time_between_heats=time.fromisoformat("00:00:00"),
         rounds_non_ranked_classes=["Test"],
         rounds_ranked_classes=["Test"],
-        race_config_non_ranked=None,  # type: ignore
-        race_config_ranked=None,  # type: ignore
+        race_config_non_ranked=[],
+        race_config_ranked=[],
     )
 
     with pytest.raises(ValidationError):
@@ -146,7 +145,7 @@ async def test_validate_competition_format_individual_sprint_format_without_roun
 @pytest.mark.unit
 async def test_validate_competition_format_individual_sprint_format_without_race_config() -> (
     None
-):  # noqa: B950
+):
     """Should raise ValidationError."""
     competition_format: IndividualSprintFormat = IndividualSprintFormat(
         name="Test",
@@ -159,8 +158,8 @@ async def test_validate_competition_format_individual_sprint_format_without_race
         time_between_heats=time.fromisoformat("00:00:30"),
         rounds_non_ranked_classes=["Test"],
         rounds_ranked_classes=["Test"],
-        race_config_non_ranked=None,  # type: ignore
-        race_config_ranked=None,  # type: ignore
+        race_config_non_ranked=[],
+        race_config_ranked=[],
     )
 
     with pytest.raises(ValidationError):
@@ -170,7 +169,7 @@ async def test_validate_competition_format_individual_sprint_format_without_race
 
 
 @pytest.mark.unit
-async def test_validate_competition_format_individual_sprint_format_with_empty_race_config() -> (  # noqa: B950
+async def test_validate_competition_format_individual_sprint_format_with_empty_race_config() -> (
     None
 ):
     """Should raise ValidationError."""
@@ -196,7 +195,7 @@ async def test_validate_competition_format_individual_sprint_format_with_empty_r
 
 
 @pytest.mark.unit
-async def test_validate_race_config_() -> None:  # noqa: B950
+async def test_validate_race_config_() -> None:
     """Should not raise ValidationError."""
     competition_format: IndividualSprintFormat = IndividualSprintFormat(
         name="Test",
