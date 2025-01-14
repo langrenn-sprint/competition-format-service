@@ -9,3 +9,11 @@ from .exceptions import (
     IllegalValueError,
     ValidationError,
 )
+
+__all__ = [
+    "CompetitionFormatAlreadyExistError",
+    "CompetitionFormatNotFoundError",
+    "CompetitionFormatsService",
+    "IllegalValueError",
+    "ValidationError",
+]

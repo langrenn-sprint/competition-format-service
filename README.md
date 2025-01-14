@@ -33,7 +33,11 @@ In future versions:
   http://localhost:8080/competition-formats
 % curl http://localhost:8080/competition-formats # list all competition formats
 % curl "http://localhost:8080/competition-formats?name=Individual%20Sprint" # search competition format by name
-% curl http://localhost:8080/competition-formats/1 # get competition format by id 
+% curl http://localhost:8080/competition-formats/<the_id> # get competition format by id
+% % curl \
+  -H "Authorization: Bearer $ACCESS" \
+  -X DELETE \
+  http://localhost:8080/competition-formats/<the_id>
 ```
 
 Look to the [openAPI specification](./specification.yaml) for the details.
@@ -43,13 +47,13 @@ Look to the [openAPI specification](./specification.yaml) for the details.
 Start the server locally:
 
 ```Shell
-% poetry run adev runserver -p 8080 --aux-port 8089 competition_format_service
+% uv run adev runserver -p 8080 --aux-port 8089 competition_format_service
 ```
 
 ## Running the API in a wsgi-server (gunicorn)
 
 ```Shell
-% poetry run gunicorn competition_format_service:create_app --bind localhost:8080 --worker-class aiohttp.GunicornWebWorker
+% uv run gunicorn competition_format_service:create_app --bind localhost:8080 --worker-class aiohttp.GunicornWebWorker
 ```
 
 ## Running the wsgi-server in Docker
@@ -61,10 +65,10 @@ To build and run the api in a Docker container:
 % docker run --env-file .env -p 8080:8080 -d ghcr.io/langrenn-sprint/competition-format-service:latest
 ```
 
-The easier way would be with docker-compose:
+The easier way would be with docker compose:
 
 ```Shell
-docker-compose up --build
+% docker compose up --build
 ```
 
 ## Running tests
@@ -74,19 +78,19 @@ We use [pytest](https://docs.pytest.org/en/latest/) for contract testing.
 To run linters, checkers and tests:
 
 ```Shell
-% nox
+% uv run poe release
 ```
 
 To run specific test:
 
 ```Shell
-% nox -s integration_tests -- -k test_create_event_adapter_fails
+% uv run poe integration_test --no-cov -- tests/integration/test_competition_formats.py::test_create_competition_format_interval_start
 ```
 
 To run tests with logging, do:
 
 ```Shell
-% nox -s integration_tests -- --log-cli-level=DEBUG
+% uv run poe integration_test  --log-cli-level=DEBUG
 ```
 
 ## Environment variables
@@ -99,7 +103,7 @@ JWT_EXP_DELTA_SECONDS=3600
 ADMIN_USERNAME=admin
 ADMIN_PASSWORD=password
 USERS_HOST_SERVER=localhost
-USERS_HOST_PORT=8086
+USERS_HOST_PORT=8081
 DB_USER=competition-format-service
 DB_PASSWORD=password
 LOGGING_LEVEL=DEBUG

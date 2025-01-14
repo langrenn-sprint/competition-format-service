@@ -2,3 +2,5 @@
 
 from .competition_formats_adapter import CompetitionFormatsAdapter
 from .users_adapter import UsersAdapter
+
+__all__ = ["CompetitionFormatsAdapter", "UsersAdapter"]
