@@ -16,6 +16,7 @@ from pytest_mock import MockFixture
 USERS_HOST_SERVER = os.getenv("USERS_HOST_SERVER")
 USERS_HOST_PORT = os.getenv("USERS_HOST_PORT")
 
+
 @pytest.fixture
 def token() -> str:
     """Create a valid token."""
@@ -289,7 +290,10 @@ async def test_create_competition_format_interval_start(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
         resp = await client.post(
             "/competition-formats", headers=headers, json=request_body
         )
@@ -330,7 +334,10 @@ async def test_create_competition_format_individual_sprint(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
         resp = await client.post(
             "/competition-formats", headers=headers, json=request_body
         )
@@ -355,7 +362,10 @@ async def test_get_competition_format_interval_start_by_id(
     )
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
 
         resp = await client.get(f"/competition-formats/{competition_format_id}")
         assert resp.status == HTTPStatus.OK
@@ -390,7 +400,10 @@ async def test_get_competition_format_individual_sprint_by_id(
     )
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
 
         resp = await client.get(f"/competition-formats/{competition_format_id}")
         assert resp.status == HTTPStatus.OK
@@ -444,7 +457,10 @@ async def test_get_competition_formats_by_name(
     )
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
 
         resp = await client.get(f"/competition-formats?name={competition_format_name}")
         assert resp.status == HTTPStatus.OK
@@ -481,7 +497,10 @@ async def test_get_competition_formats_by_name_individual_sprint(
     )
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
 
         resp = await client.get(f"/competition-formats?name={competition_format_name}")
         assert resp.status == HTTPStatus.OK
@@ -546,7 +565,10 @@ async def test_update_competition_format_interval_start(
     request_body["name"] = new_name
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
 
         resp = await client.put(
             f"/competition-formats/{competition_format_id}",
@@ -586,7 +608,10 @@ async def test_update_competition_format_individual_sprint(
     request_body["name"] = new_name
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
 
         resp = await client.put(
             f"/competition-formats/{competition_format_id}",
@@ -614,7 +639,10 @@ async def test_get_all_competition_formats(
     )
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
         resp = await client.get("/competition-formats")
         assert resp.status == HTTPStatus.OK
         assert "application/json" in resp.headers[hdrs.CONTENT_TYPE]
@@ -646,7 +674,10 @@ async def test_delete_competition_format_by_id(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
 
         resp = await client.delete(
             f"/competition-formats/{competition_format_id}", headers=headers
@@ -688,7 +719,10 @@ async def test_create_competition_format_interval_start_unknown_datatype(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
         resp = await client.post(
             "/competition-formats", headers=headers, json=request_body
         )
@@ -725,7 +759,10 @@ async def test_create_competition_format_interval_start_already_exist(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
         resp = await client.post(
             "/competition-formats", headers=headers, json=request_body
         )
@@ -763,7 +800,10 @@ async def test_create_competition_format_missing_mandatory_property(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
         resp = await client.post(
             "/competition-formats", headers=headers, json=request_body
         )
@@ -800,7 +840,10 @@ async def test_create_competition_format_with_input_id(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
         resp = await client.post(
             "/competition-formats", headers=headers, json=request_body
         )
@@ -834,7 +877,10 @@ async def test_create_competition_format_adapter_fails(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
         resp = await client.post(
             "/competition-formats", headers=headers, json=request_body
         )
@@ -867,7 +913,10 @@ async def test_update_competition_format_unknown_datatype(
     request_body["datatype"] = "unknown"
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
 
         resp = await client.put(
             f"/competition-formats/{competition_format_id}",
@@ -905,7 +954,10 @@ async def test_update_competition_format_by_id_missing_mandatory_property(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
 
         resp = await client.put(
             f"/competition-formats/{competition_format_id}",
@@ -940,7 +992,10 @@ async def test_update_competition_format_by_id_different_id_in_body(
     request_body = {"id": "different_id"} | competition_format_interval_start
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
 
         resp = await client.put(
             f"/competition-formats/{competition_format_id}",
@@ -983,7 +1038,10 @@ async def test_create_competition_format_invalid_intervals(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
         resp = await client.post(
             "/competition-formats",
             headers=headers,
@@ -1027,7 +1085,10 @@ async def test_create_competition_format_invalid_time_between_groups(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
         resp = await client.post(
             "/competition-formats",
             headers=headers,
@@ -1071,7 +1132,10 @@ async def test_create_competition_format_invalid_time_between_rounds(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
         resp = await client.post(
             "/competition-formats",
             headers=headers,
@@ -1115,7 +1179,10 @@ async def test_create_competition_format_invalid_time_between_heats(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
         resp = await client.post(
             "/competition-formats",
             headers=headers,
@@ -1157,13 +1224,17 @@ async def test_create_competition_format_no_race_config_non_ranked(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
         resp = await client.post(
             "/competition-formats",
             headers=headers,
             json=competition_format_without_race_config,
         )
         assert resp.status == HTTPStatus.UNPROCESSABLE_ENTITY
+
 
 @pytest.mark.integration
 async def test_create_competition_format_no_race_config_ranked(
@@ -1198,13 +1269,17 @@ async def test_create_competition_format_no_race_config_ranked(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
         resp = await client.post(
             "/competition-formats",
             headers=headers,
             json=competition_format_without_race_config,
         )
         assert resp.status == HTTPStatus.UNPROCESSABLE_ENTITY
+
 
 @pytest.mark.integration
 async def test_create_competition_format_no_rounds_non_ranked_classes(
@@ -1239,13 +1314,17 @@ async def test_create_competition_format_no_rounds_non_ranked_classes(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
         resp = await client.post(
             "/competition-formats",
             headers=headers,
             json=competition_format_without_race_config,
         )
         assert resp.status == HTTPStatus.UNPROCESSABLE_ENTITY
+
 
 @pytest.mark.integration
 async def test_create_competition_format_no_rounds_ranked_classes(
@@ -1280,13 +1359,17 @@ async def test_create_competition_format_no_rounds_ranked_classes(
     }
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
         resp = await client.post(
             "/competition-formats",
             headers=headers,
             json=competition_format_without_race_config,
         )
         assert resp.status == HTTPStatus.UNPROCESSABLE_ENTITY
+
 
 @pytest.mark.integration
 async def test_update_competition_format_invalid_interval(
@@ -1315,7 +1398,10 @@ async def test_update_competition_format_invalid_interval(
     updated_competition_format["intervals"] = "99:99:99"
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
 
         resp = await client.put(
             f"/competition-formats/{competition_format_id}",
@@ -1467,7 +1553,10 @@ async def test_get_competition_format_not_found(
     )
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
 
         resp = await client.get(f"/competition-formats/{competition_format_id}")
         assert resp.status == HTTPStatus.NOT_FOUND
@@ -1485,7 +1574,10 @@ async def test_get_competition_formats_by_name_not_found(
     )
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
 
         resp = await client.get(f"/competition-formats?name={competition_format_name}")
         assert resp.status == HTTPStatus.OK
@@ -1519,7 +1611,10 @@ async def test_update_competition_format_not_found(
     request_body = competition_format_interval_start
 
     with aioresponses(passthrough=["http://127.0.0.1"]) as m:
-        m.post(f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize", status=HTTPStatus.NO_CONTENT)
+        m.post(
+            f"http://{USERS_HOST_SERVER}:{USERS_HOST_PORT}/authorize",
+            status=HTTPStatus.NO_CONTENT,
+        )
         resp = await client.put(
             f"/competition-formats/{competition_format_id}",
             headers=headers,

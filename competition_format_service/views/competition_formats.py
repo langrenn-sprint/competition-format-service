@@ -38,6 +38,10 @@ BASE_URL = f"http://{HOST_SERVER}:{HOST_PORT}"
 class CompetitionFormatsView(View):
     """Class representing competition_formats resource."""
 
+    logger = logging.getLogger(
+        "competition_format_service.competition_formats_view.CompetitionFormatsView"
+    )
+
     async def get(self) -> Response:
         """Get route function."""
         db = self.request.app["db"]
@@ -69,7 +73,7 @@ class CompetitionFormatsView(View):
             raise e from e
 
         body = await self.request.json()
-        logging.debug(
+        self.logger.debug(
             f"Got create request for competition_format {body} of type {type(body)}"
         )
         try:
@@ -96,7 +100,7 @@ class CompetitionFormatsView(View):
         except ValidationError as e:
             raise HTTPUnprocessableEntity(reason=str(e)) from e
         if competition_format_id:
-            logging.debug(
+            self.logger.debug(
                 f"inserted document with competition_format_id {competition_format_id}"
             )
             headers = MultiDict(
@@ -115,12 +119,18 @@ class CompetitionFormatsView(View):
 class CompetitionFormatView(View):
     """Class representing a single competition_format resource."""
 
+    logger = logging.getLogger(
+        "competition_format_service.competition_formats_view.CompetitionFormatView"
+    )
+
     async def get(self) -> Response:
         """Get route function."""
         db = self.request.app["db"]
 
         competition_format_id = self.request.match_info["id"]
-        logging.debug(f"Got get request for competition_format {competition_format_id}")
+        self.logger.debug(
+            f"Got get request for competition_format {competition_format_id}"
+        )
 
         try:
             competition_format = (
@@ -130,7 +140,7 @@ class CompetitionFormatView(View):
             )
         except CompetitionFormatNotFoundError as e:
             raise HTTPNotFound(reason=str(e)) from e
-        logging.debug(f"Got competition_format: {competition_format}")
+        self.logger.debug(f"Got competition_format: {competition_format}")
         body = competition_format.to_json()
         return Response(status=200, body=body, content_type="application/json")
 
@@ -145,11 +155,11 @@ class CompetitionFormatView(View):
 
         body = await self.request.json()
         competition_format_id = self.request.match_info["id"]
-        logging.debug(
+        self.logger.debug(
             f"Got request-body {body} for {competition_format_id} of type {type(body)}"
         )
         body = await self.request.json()
-        logging.debug(
+        self.logger.debug(
             f"Got put request for competition_format {body} of type {type(body)}"
         )
         try:
@@ -185,7 +195,7 @@ class CompetitionFormatView(View):
             raise e from e
 
         competition_format_id = self.request.match_info["id"]
-        logging.debug(
+        self.logger.debug(
             f"Got delete request for competition_format {competition_format_id}"
         )
 

@@ -7,6 +7,8 @@ from aiohttp import web
 
 CONFIG = os.getenv("CONFIG", "production")
 
+logger = logging.getLogger(__name__)
+
 
 class Ready(web.View):
     """Class representing ready resource."""
@@ -18,7 +20,7 @@ class Ready(web.View):
         else:  # pragma: no cover
             db = self.request.app["db"]
             result = await db.command("ping")
-            logging.debug(f"result of db-ping: {result}")
+            logger.debug(f"result of db-ping: {result}")
             if result["ok"] == 1:
                 return web.Response(text="OK")
             raise web.HTTPInternalServerError from None
