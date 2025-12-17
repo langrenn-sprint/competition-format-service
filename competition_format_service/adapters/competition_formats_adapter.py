@@ -9,6 +9,10 @@ from .adapter import Adapter
 class CompetitionFormatsAdapter(Adapter):
     """Class representing an adapter for competition_formats."""
 
+    logger = logging.getLogger(
+        "competition_format_service.competition_formats_adapter.CompetitionFormatsAdapter"
+    )
+
     @classmethod
     async def get_all_competition_formats(
         cls: Any, db: Any
@@ -38,13 +42,13 @@ class CompetitionFormatsAdapter(Adapter):
         cls: Any, db: Any, competition_format_name: str
     ) -> list[dict]:  # pragma: no cover
         """Get competition_format by name function."""
-        logging.debug(f"Got request for name {competition_format_name}.")
+        cls.logger.debug(f"Got request for name {competition_format_name}.")
         competition_formats: list = []
         query = {"$regex": f".*{competition_format_name}.*", "$options": "i"}
-        logging.debug(f"Query: {query}.")
+        cls.logger.debug(f"Query: {query}.")
         cursor = db.competition_formats_collection.find({"name": query})
         for competition_format in await cursor.to_list(None):
-            logging.debug(f"cursor - competition_format: {competition_format}")
+            cls.logger.debug(f"cursor - competition_format: {competition_format}")
             competition_formats.append(competition_format)
         return competition_formats
 

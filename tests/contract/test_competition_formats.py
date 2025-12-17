@@ -23,6 +23,8 @@ DB_NAME = os.getenv("DB_NAME")
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 
+logger = logging.getLogger(__name__)
+
 
 @pytest.fixture(scope="module")
 async def token(http_service: Any) -> str:
@@ -38,34 +40,34 @@ async def token(http_service: Any) -> str:
         body = await response.json()
     await session.close()
     if response.status != HTTPStatus.OK:
-        logging.error(f"Got unexpected status {response.status} from {http_service}.")
+        logger.error(f"Got unexpected status {response.status} from {http_service}.")
     return body["token"]
 
 
 @pytest.fixture(scope="module", autouse=True)
 async def clear_db() -> AsyncGenerator:
     """Clear db before and after tests."""
-    logging.info(" --- Cleaning db at startup. ---")
+    logger.info(" --- Cleaning db at startup. ---")
     mongo = motor.motor_asyncio.AsyncIOMotorClient(
         host=DB_HOST, port=DB_PORT, username=DB_USER, password=DB_PASSWORD
     )
     try:
         await mongo.drop_database(f"{DB_NAME}")
     except Exception as error:
-        logging.exception(f"Failed to drop database {DB_NAME}.")
+        logger.exception(f"Failed to drop database {DB_NAME}.")
         raise error from None
-    logging.info(" --- Testing starts. ---")
+    logger.info(" --- Testing starts. ---")
 
     yield
 
-    logging.info(" --- Testing finished. ---")
-    logging.info(" --- Cleaning db after testing. ---")
+    logger.info(" --- Testing finished. ---")
+    logger.info(" --- Cleaning db after testing. ---")
     try:
         await mongo.drop_database(f"{DB_NAME}")
     except Exception as error:
-        logging.exception(f"Failed to drop database {DB_NAME}.")
+        logger.exception(f"Failed to drop database {DB_NAME}.")
         raise error from None
-    logging.info(" --- Cleaning db done. ---")
+    logger.info(" --- Cleaning db done. ---")
 
 
 @pytest.fixture(scope="module")

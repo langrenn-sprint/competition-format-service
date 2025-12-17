@@ -29,6 +29,10 @@ def create_id() -> str:  # pragma: no cover
 class CompetitionFormatsService:
     """Class representing a service for competition_formats."""
 
+    logger = logging.getLogger(
+        "competition_format_service.competition_formats_service.CompetitionFormatsService"
+    )
+
     @classmethod
     async def get_all_competition_formats(cls: Any, db: Any) -> list[CompetitionFormat]:
         """Get all competition_formats function."""
@@ -107,7 +111,9 @@ class CompetitionFormatsService:
         result = await CompetitionFormatsAdapter.create_competition_format(
             db, new_competition_format
         )
-        logging.debug(f"inserted competition_format with id: {competition_format_id}")
+        cls.logger.debug(
+            f"inserted competition_format with id: {competition_format_id}"
+        )
         if result:
             return competition_format_id
         return None
