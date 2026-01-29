@@ -14,7 +14,7 @@ from fastapi.security import (
     HTTPBearer,
 )
 
-# Set upp logging:
+# Set up logging:
 logger = logging.getLogger("uvicorn.error")
 
 
