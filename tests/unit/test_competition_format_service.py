@@ -1,15 +1,16 @@
 """Unit test cases for the competition-format-service module."""
 
-from datetime import time
+from datetime import timedelta
 
 import pytest
+from pydantic import ValidationError as PydanticValidationError
 
-from competition_format_service.models import (
+from app.models import (
     IndividualSprintFormat,
     IntervalStartFormat,
     RaceConfig,
 )
-from competition_format_service.services import (
+from app.services import (
     CompetitionFormatsService,
     IllegalValueError,
     ValidationError,
@@ -25,8 +26,8 @@ async def test_competition_format_service_with_valid_interval_start_format() -> 
         starting_order="Test",
         max_no_of_contestants_in_race=1,
         max_no_of_contestants_in_raceclass=1,
-        time_between_groups=time.fromisoformat("00:01:00"),
-        intervals=time.fromisoformat("00:00:30"),
+        time_between_groups=timedelta(minutes=1),
+        intervals=timedelta(seconds=30),
     )
     try:
         await CompetitionFormatsService.validate_competition_format(
@@ -45,9 +46,9 @@ async def test_validate_competition_format_valid_individual_sprint_format() -> N
         starting_order="Test",
         max_no_of_contestants_in_race=1,
         max_no_of_contestants_in_raceclass=1,
-        time_between_groups=time.fromisoformat("00:01:00"),
-        time_between_rounds=time.fromisoformat("00:00:30"),
-        time_between_heats=time.fromisoformat("00:00:30"),
+        time_between_groups=timedelta(minutes=1),
+        time_between_rounds=timedelta(seconds=30),
+        time_between_heats=timedelta(seconds=30),
         rounds_non_ranked_classes=["R1", "R2"],
         rounds_ranked_classes=["R1", "R2"],
         race_config_non_ranked=[
@@ -80,25 +81,21 @@ async def test_validate_competition_format_valid_individual_sprint_format() -> N
 async def test_validate_competition_format_individual_sprint_format_no_time_between_heats() -> (
     None
 ):
-    """Should raise ValidationError."""
-    competition_format: IndividualSprintFormat = IndividualSprintFormat(
-        name="Test",
-        start_procedure="Test",
-        starting_order="Test",
-        max_no_of_contestants_in_race=1,
-        max_no_of_contestants_in_raceclass=1,
-        time_between_groups=time.fromisoformat("00:01:00"),
-        time_between_rounds=time.fromisoformat("00:00:30"),
-        time_between_heats=time.fromisoformat("00:00:00"),
-        rounds_non_ranked_classes=["Test"],
-        rounds_ranked_classes=["Test"],
-        race_config_non_ranked=[],
-        race_config_ranked=[],
-    )
-
-    with pytest.raises(ValidationError):
-        await CompetitionFormatsService.validate_competition_format(
-            competition_format=competition_format
+    """Should raise ValidationError during construction."""
+    with pytest.raises(PydanticValidationError):
+        IndividualSprintFormat(
+            name="Test",
+            start_procedure="Test",
+            starting_order="Test",
+            max_no_of_contestants_in_race=1,
+            max_no_of_contestants_in_raceclass=1,
+            time_between_groups=timedelta(minutes=1),
+            time_between_rounds=timedelta(seconds=30),
+            time_between_heats=timedelta(seconds=0),
+            rounds_non_ranked_classes=["Test"],
+            rounds_ranked_classes=["Test"],
+            race_config_non_ranked=[],
+            race_config_ranked=[],
         )
 
 
@@ -113,9 +110,9 @@ async def test_validate_competition_format_individual_sprint_format_without_roun
         starting_order="Test",
         max_no_of_contestants_in_race=1,
         max_no_of_contestants_in_raceclass=1,
-        time_between_groups=time.fromisoformat("00:01:00"),
-        time_between_rounds=time.fromisoformat("00:00:30"),
-        time_between_heats=time.fromisoformat("00:00:30"),
+        time_between_groups=timedelta(minutes=1),
+        time_between_rounds=timedelta(seconds=30),
+        time_between_heats=timedelta(seconds=30),
         rounds_non_ranked_classes=[],
         rounds_ranked_classes=[],
         race_config_non_ranked=[
@@ -153,9 +150,9 @@ async def test_validate_competition_format_individual_sprint_format_without_race
         starting_order="Test",
         max_no_of_contestants_in_race=1,
         max_no_of_contestants_in_raceclass=1,
-        time_between_groups=time.fromisoformat("00:01:00"),
-        time_between_rounds=time.fromisoformat("00:00:30"),
-        time_between_heats=time.fromisoformat("00:00:30"),
+        time_between_groups=timedelta(minutes=1),
+        time_between_rounds=timedelta(seconds=30),
+        time_between_heats=timedelta(seconds=30),
         rounds_non_ranked_classes=["Test"],
         rounds_ranked_classes=["Test"],
         race_config_non_ranked=[],
@@ -179,9 +176,9 @@ async def test_validate_competition_format_individual_sprint_format_with_empty_r
         starting_order="Test",
         max_no_of_contestants_in_race=1,
         max_no_of_contestants_in_raceclass=1,
-        time_between_groups=time.fromisoformat("00:01:00"),
-        time_between_rounds=time.fromisoformat("00:00:30"),
-        time_between_heats=time.fromisoformat("00:00:30"),
+        time_between_groups=timedelta(minutes=1),
+        time_between_rounds=timedelta(seconds=30),
+        time_between_heats=timedelta(seconds=30),
         rounds_non_ranked_classes=["Test"],
         rounds_ranked_classes=["Test"],
         race_config_non_ranked=[],
@@ -203,9 +200,9 @@ async def test_validate_race_config_() -> None:
         starting_order="Test",
         max_no_of_contestants_in_race=1,
         max_no_of_contestants_in_raceclass=1,
-        time_between_groups=time.fromisoformat("00:01:00"),
-        time_between_rounds=time.fromisoformat("00:00:30"),
-        time_between_heats=time.fromisoformat("00:00:30"),
+        time_between_groups=timedelta(minutes=1),
+        time_between_rounds=timedelta(seconds=30),
+        time_between_heats=timedelta(seconds=30),
         rounds_non_ranked_classes=["Test"],
         rounds_ranked_classes=["R1", "R2"],
         race_config_non_ranked=[

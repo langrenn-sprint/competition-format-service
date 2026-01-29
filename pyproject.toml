@@ -16,17 +16,12 @@ version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
     "aiodns>=3.2.0",
-    "aiohttp>=3.11.11",
-    "aiohttp-middlewares>=2.4.0",
     "certifi>=2024.12.14",
-    "dataclasses-json>=0.6.7",
-    "gunicorn>=23.0.0",
-    "marshmallow>=3.25.1",
+    "fastapi[standard]>=0.128.0",
     "motor>=3.6.0",
-    "multidict>=6.1.0",
+    "pydantic>=2.12.5",
     "pyjwt>=2.10.1",
     "python-dotenv>=1.0.1",
-    "python-json-logger>=3.2.1",
 ]
 
 [project.urls]
@@ -36,10 +31,7 @@ source = "https://github.com/langrenn-sprint/competition-format-service"
 
 [dependency-groups]
 dev = [
-    "aiohttp-devtools>=1.1.2",
     "poethepoet>=0.29.0",
-    "pyright>=1.1.386",
-    "pytest-aiohttp>=1.0.5",
     "pytest-asyncio>=0.24.0",
     "pytest-cov>=5.0.0",
     "pytest-docker>=3.1.1",
@@ -48,9 +40,9 @@ dev = [
     "pytest>=8.3.3",
     "requests>=2.32.3",
     "ruff>=0.7.1",
-    "aioresponses>=0.7.7",
     "deptry>=0.22.0",
     "pip-audit>=2.7.3",
+    "ty>=0.0.14",
 ]
 
 [tool.ruff.lint]
@@ -70,7 +62,7 @@ ignore = ["COM812", "ISC001", "T201", "G004", "E501", "ANN401"]
 ]
 [tool.ruff.lint.isort]
 # so it knows to group first-party stuff last
-known-first-party = ["competition_format_service"]
+known-first-party = ["app"]
 
 [tool.ruff.lint.pydocstyle]
 # Use Google-style docstrings.
@@ -92,6 +84,7 @@ env = [
     "LOGGING_LEVEL=DEBUG",
     "USERS_HOST_SERVER=localhost",
     "USERS_HOST_PORT=8081",
+    "JWT_SECRET=secret"
 ]
 asyncio_mode = "auto"
 markers = [
@@ -101,12 +94,12 @@ markers = [
 ]
 
 [tool.coverage.paths]
-source = ["competition_format_service", "*/site-packages"]
+source = ["app", "*/site-packages"]
 
 [tool.coverage.run]
 branch = false
 omit = ["*gunicorn_config.py", "users_adapter.py", "adapter.py"]
-source = ["competition_format_service"]
+source = ["app"]
 
 [tool.coverage.report]
 fail_under = 100
@@ -115,18 +108,18 @@ show_missing = true
 [tool.poe.tasks]
 format = { cmd = "uv run ruff format" }
 lint = { cmd = "uv run ruff check --fix" }
-pyright = { cmd = "uv run pyright" }
-check_deps = { cmd = "uv run deptry ." }
+check-types = { cmd = "uv run ty check ." }
+check-deps = { cmd = "uv run deptry ." }
 audit = { cmd = "uv run pip-audit" }
-unit_test = { cmd = "uv run pytest -m unit", env = { "CONFIG" = "test" } }
-integration_test = { cmd = "uv run pytest -m integration -s --cov --cov-report=term-missing --cov-report=html:.htmlcov", env = { "CONFIG" = "test" } }
-contract_test = { cmd = "uv run pytest -m contract" }
+unit-test = { cmd = "uv run pytest -m unit", env = { "CONFIG" = "test" } }
+integration-test = { cmd = "uv run pytest -m integration -s --cov --cov-report=term-missing --cov-report=html:.htmlcov", env = { "CONFIG" = "test" } }
+contract-test = { cmd = "uv run pytest -m contract" }
 release = { sequence = [
     "lint",
-    "pyright",
-    "check_deps",
+    "check-types",
+    "check-deps",
     "audit",
-    "unit_test",
-    "integration_test",
-    "contract_test",
+    "unit-test",
+    "integration-test",
+    "contract-test",
 ] }

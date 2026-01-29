@@ -2,6 +2,7 @@
 
 from .competition_format_model import (
     CompetitionFormat,
+    CompetitionFormatUnion,
     IndividualSprintFormat,
     IntervalStartFormat,
     RaceConfig,
@@ -9,6 +10,7 @@ from .competition_format_model import (
 
 __all__ = [
     "CompetitionFormat",
+    "CompetitionFormatUnion",
     "IndividualSprintFormat",
     "IntervalStartFormat",
     "RaceConfig",
