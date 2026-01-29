@@ -13,6 +13,10 @@ ADD . /app
 WORKDIR /app
 RUN uv sync --frozen
 
-EXPOSE 8080
+EXPOSE 8000
 
-CMD /app/.venv/bin/gunicorn "competition_format_service:create_app"  --config=competition_format_service/gunicorn_config.py --worker-class aiohttp.GunicornWebWorker
+# Run the uvicorn server with the application
+# Uses `--workers 1` to avoid issues with the uv worker pool
+# Uses `--host 0.0.0.0` to allow access from outside the container
+# Run the application.
+CMD ["/app/.venv/bin/uvicorn", "app:api",  "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--log-config=logging.yaml"]

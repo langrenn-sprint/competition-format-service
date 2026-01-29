@@ -1,15 +1,13 @@
 """Module for competition_formats service."""
 
-import datetime
 import logging
-import uuid
 from typing import Any
+from uuid import UUID
 
-from competition_format_service.adapters import CompetitionFormatsAdapter
-from competition_format_service.models import (
-    CompetitionFormat,
+from app.adapters import CompetitionFormatsAdapter
+from app.models import (
+    CompetitionFormatUnion,
     IndividualSprintFormat,
-    IntervalStartFormat,
     RaceConfig,
 )
 
@@ -21,11 +19,6 @@ from .exceptions import (
 )
 
 
-def create_id() -> str:  # pragma: no cover
-    """Creates an uuid."""
-    return str(uuid.uuid4())
-
-
 class CompetitionFormatsService:
     """Class representing a service for competition_formats."""
 
@@ -34,29 +27,10 @@ class CompetitionFormatsService:
     )
 
     @classmethod
-    async def get_all_competition_formats(cls: Any, db: Any) -> list[CompetitionFormat]:
-        """Get all competition_formats function."""
-        competition_formats: list[CompetitionFormat] = []
-        _competition_formats = (
-            await CompetitionFormatsAdapter.get_all_competition_formats(db)
-        )
-        for e in _competition_formats:
-            if e["datatype"] == "interval_start":
-                competition_formats.append(IntervalStartFormat.from_dict(e))
-            elif e["datatype"] == "individual_sprint":
-                competition_formats.append(IndividualSprintFormat.from_dict(e))
-        return sorted(
-            competition_formats,
-            key=lambda k: (k.name,),
-            reverse=False,
-        )
-
-    @classmethod
     async def create_competition_format(
         cls: Any,
-        db: Any,
-        competition_format: IndividualSprintFormat | IntervalStartFormat,
-    ) -> str | None:
+        competition_format: CompetitionFormatUnion,
+    ) -> UUID | None:
         """Create competition_format function.
 
         Args:
@@ -70,14 +44,10 @@ class CompetitionFormatsService:
             CompetitionFormatAlreadyExistError: A format with the same name already exist
             ValidationError: input object has illegal values
         """
-        # Validate that the id is not set:
-        if competition_format.id:
-            msg = "Cannot create competition-format with input id."
-            raise ValidationError(msg) from None
         # Check if it exists:
         _competition_formats = (
             await CompetitionFormatsAdapter.get_competition_formats_by_name(
-                db, competition_format.name
+                competition_format.name
             )
         )
         if _competition_formats:
@@ -85,9 +55,6 @@ class CompetitionFormatsService:
                 f"Competition-format with name {competition_format.name} already exist."
             )
             raise CompetitionFormatAlreadyExistError(msg) from None
-        # create id
-        competition_format_id = create_id()
-        competition_format.id = competition_format_id
 
         # Validation:
         try:
@@ -107,82 +74,21 @@ class CompetitionFormatsService:
             )
 
         # insert new competition_format
-        new_competition_format = competition_format.to_dict()
         result = await CompetitionFormatsAdapter.create_competition_format(
-            db, new_competition_format
+            competition_format
         )
         cls.logger.debug(
-            f"inserted competition_format with id: {competition_format_id}"
+            f"inserted competition_format with id: {competition_format.id.hex} and result: {result}"
         )
         if result:
-            return competition_format_id
+            return competition_format.id
         return None
-
-    @classmethod
-    async def get_competition_format_by_id(
-        cls: Any, db: Any, competition_format_id: str
-    ) -> CompetitionFormat:
-        """Get competition_format function."""
-        competition_format = (
-            await CompetitionFormatsAdapter.get_competition_format_by_id(
-                db, competition_format_id
-            )
-        )
-        # return the document if found:
-        if competition_format:
-            if competition_format["datatype"] == "interval_start":
-                return IntervalStartFormat.from_dict(competition_format)
-            if competition_format["datatype"] == "individual_sprint":
-                # sort the race-configs by max_no_of_contestants:
-                competition_format["race_config_non_ranked"].sort(
-                    key=lambda k: (k["max_no_of_contestants"],),
-                    reverse=False,
-                )
-                competition_format["race_config_ranked"].sort(
-                    key=lambda k: (k["max_no_of_contestants"],),
-                    reverse=False,
-                )
-
-                return IndividualSprintFormat.from_dict(competition_format)
-
-        msg = f"CompetitionFormat with id {competition_format_id} not found"
-        raise CompetitionFormatNotFoundError(msg) from None
-
-    @classmethod
-    async def get_competition_formats_by_name(
-        cls: Any, db: Any, name: str
-    ) -> list[CompetitionFormat]:
-        """Get competition_format by name function."""
-        competition_formats: list[CompetitionFormat] = []
-        _competition_formats = (
-            await CompetitionFormatsAdapter.get_competition_formats_by_name(db, name)
-        )
-        for competition_format in _competition_formats:
-            if competition_format["datatype"] == "interval_start":
-                competition_formats.append(
-                    IntervalStartFormat.from_dict(competition_format)
-                )
-            if competition_format["datatype"] == "individual_sprint":
-                # sort the race-configs by max_no_of_contestants:
-                competition_format["race_config_non_ranked"].sort(
-                    key=lambda k: (k["max_no_of_contestants"],),
-                    reverse=False,
-                )
-                competition_format["race_config_ranked"].sort(
-                    key=lambda k: (k["max_no_of_contestants"],),
-                    reverse=False,
-                )
-                competition_formats.append(
-                    IndividualSprintFormat.from_dict(competition_format)
-                )
-        return competition_formats
 
     @classmethod
     async def update_competition_format(
         cls: Any,
-        db: Any,
-        competition_format_id: str,
-        competition_format: IndividualSprintFormat | IntervalStartFormat,
+        competition_format_id: UUID,
+        competition_format: CompetitionFormatUnion,
     ) -> str | None:
         """Get competition_format function."""
         # Validate:
@@ -190,12 +96,12 @@ class CompetitionFormatsService:
         # get old document
         old_competition_format = (
             await CompetitionFormatsAdapter.get_competition_format_by_id(
-                db, competition_format_id
+                competition_format_id
             )
         )
         # update the competition_format if found:
         if old_competition_format:
-            if competition_format.id != old_competition_format["id"]:
+            if competition_format.id != old_competition_format.id:
                 msg = "Cannot change id for competition_format."
                 raise IllegalValueError(msg) from None
             # Sort the race_configs:
@@ -208,63 +114,45 @@ class CompetitionFormatsService:
                     key=lambda k: (k.max_no_of_contestants,),
                     reverse=False,
                 )
-            new_competition_format = competition_format.to_dict()
             return await CompetitionFormatsAdapter.update_competition_format(
-                db, competition_format_id, new_competition_format
+                competition_format_id, competition_format
             )
 
-        msg = f"CompetitionFormat with id {competition_format_id} not found."
+        msg = f"CompetitionFormat with id {competition_format_id.hex} not found."
         raise CompetitionFormatNotFoundError(msg) from None
 
     @classmethod
     async def delete_competition_format(
-        cls: Any, db: Any, competition_format_id: str
+        cls: Any, competition_format_id: UUID
     ) -> str | None:
         """Get competition_format function."""
         # get old document
         competition_format = (
             await CompetitionFormatsAdapter.get_competition_format_by_id(
-                db, competition_format_id
+                competition_format_id
             )
         )
         # delete the document if found:
         if competition_format:
             return await CompetitionFormatsAdapter.delete_competition_format(
-                db, competition_format_id
+                competition_format_id
             )
 
-        msg = f"CompetitionFormat with id {competition_format_id} not found."
+        msg = f"CompetitionFormat with id {competition_format_id.hex} not found."
         raise CompetitionFormatNotFoundError(msg) from None
 
     @classmethod
     async def validate_competition_format(
         cls: Any,
-        competition_format: IndividualSprintFormat | IntervalStartFormat,
+        competition_format: CompetitionFormatUnion,
     ) -> None:  # pragma: no cover
         """Validate the competition-format."""
-        # Max number of contestants in race must be greater than zero:
-        if competition_format.max_no_of_contestants_in_race <= 0:
-            msg = "Max number of contestants in race must be greater than zero."
-            raise IllegalValueError(msg) from None
-        # Max number of contestants in raceclass must be greater than zero:
-        if competition_format.max_no_of_contestants_in_raceclass <= 0:
-            msg = "Max number of contestants in raceclass must be greater than zero."
-            raise IllegalValueError(msg) from None
-
-        # Validate IntervalStartFormat:
-        if (
-            isinstance(competition_format, IntervalStartFormat)
-            and competition_format.intervals == 0
-        ):
-            msg = "Intervals must be greater than zero."
-            raise IllegalValueError(msg) from None
-
         # Validate IndividualSprintFormat:
         if isinstance(competition_format, IndividualSprintFormat):
             await cls.validate_individual_sprint_format(competition_format)
 
     @classmethod
-    async def validate_race_config(  # noqa: C901
+    async def validate_race_config(
         cls: Any,
         max_no_of_contestants_in_raceclass: int,
         rounds: list,
@@ -272,10 +160,6 @@ class CompetitionFormatsService:
     ) -> None:  # pragma: no cover
         """Validate the competition-format."""
         for race_config in race_configs:
-            # Max number of contestants must be greater than zero:
-            if race_config.max_no_of_contestants <= 0:
-                msg = "Max number of contestants must be greater than zero."
-                raise IllegalValueError(msg) from None
             # Max number of contestants must be less than
             # or equal to max_no_of_contestants_in_race:
             if race_config.max_no_of_contestants > max_no_of_contestants_in_raceclass:
@@ -308,10 +192,6 @@ class CompetitionFormatsService:
         cls: Any, competition_format: IndividualSprintFormat
     ) -> None:
         """Validate the IndividualSprintFormat."""
-        if competition_format.time_between_heats == datetime.time(0, 0):
-            msg = "Time between heats must be greater than zero."
-            raise IllegalValueError(msg) from None
-
         if (
             hasattr(competition_format, "rounds_non_ranked_classes")
             and len(competition_format.rounds_non_ranked_classes) > 0

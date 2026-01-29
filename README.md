@@ -24,7 +24,7 @@ In future versions:
 % curl -H "Content-Type: application/json" \
   -X POST \
   --data '{"username":"admin","password":"password"}' \
-  http://localhost:8082/login
+  http://localhost:8081/login
 % export ACCESS="" #token from response
 % curl -H "Content-Type: application/json" \
   -H "Authorization: Bearer $ACCESS" \
@@ -47,13 +47,13 @@ Look to the [openAPI specification](./specification.yaml) for the details.
 Start the server locally:
 
 ```Shell
-% uv run adev runserver -p 8080 --aux-port 8089 competition_format_service
+% uv run --env-file=.env fastapi dev
 ```
 
 ## Running the API in a wsgi-server (gunicorn)
 
 ```Shell
-% uv run gunicorn competition_format_service:create_app --bind localhost:8080 --worker-class aiohttp.GunicornWebWorker
+% uv run --env-file=.env uvicorn app:api --host 0.0.0.0 --port 8000 --reload --log-config=logging.yaml
 ```
 
 ## Running the wsgi-server in Docker
@@ -84,13 +84,13 @@ To run linters, checkers and tests:
 To run specific test:
 
 ```Shell
-% uv run poe integration_test --no-cov -- tests/integration/test_competition_formats.py::test_create_competition_format_interval_start
+% uv run poe integration-test --no-cov -- tests/integration/test_competition_formats.py::test_create_competition_format_interval_start
 ```
 
 To run tests with logging, do:
 
 ```Shell
-% uv run poe integration_test  --log-cli-level=DEBUG
+% uv run poe integration-test  --log-cli-level=DEBUG
 ```
 
 ## Environment variables
