@@ -6,7 +6,6 @@ from http import HTTPStatus
 from typing import Annotated
 from uuid import UUID
 
-from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import Response
 
@@ -21,7 +20,6 @@ from app.services import (
     ValidationError,
 )
 
-load_dotenv()
 HOST_SERVER = os.getenv("HOST_SERVER", "localhost")
 HOST_PORT = os.getenv("HOST_PORT", "8080")
 BASE_URL = f"http://{HOST_SERVER}:{HOST_PORT}"

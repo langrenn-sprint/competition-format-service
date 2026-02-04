@@ -8,10 +8,8 @@ from typing import Any
 
 import pytest
 import requests
-from dotenv import load_dotenv
 from requests.exceptions import ConnectionError  # noqa: A004
 
-load_dotenv()
 HOST_PORT = int(env.get("HOST_PORT", "8000"))
 
 
