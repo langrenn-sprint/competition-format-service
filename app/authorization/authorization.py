@@ -3,7 +3,7 @@
 import logging
 import os
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from http import HTTPStatus
 from typing import Annotated, Any
 
@@ -133,7 +133,7 @@ async def get_current_token(
         raise TokenValidationError(msg) from e
 
 
-class UserRole(str, Enum):
+class UserRole(StrEnum):
     """User roles enumeration."""
 
     Admin = "admin"
