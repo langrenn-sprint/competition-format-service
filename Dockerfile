@@ -1,10 +1,10 @@
-FROM python:3.13-slim
+FROM python:3.14.2-slim
 
 RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 # Install uv.
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.9.29 /uv /uvx /bin/
 
 # Copy the application into the container.
 ADD . /app
