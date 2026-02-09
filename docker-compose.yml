@@ -1,3 +1,4 @@
+version: "3.9"
 services:
   competition-format-service:
     build: .
@@ -35,7 +36,7 @@ services:
     depends_on:
       - mongodb
   mongodb:
-    image: mongo:latest
+    image: mongo:7-jammy
     ports:
       - 27017:27017
     environment:
