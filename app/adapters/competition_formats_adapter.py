@@ -19,7 +19,7 @@ class CompetitionFormatsAdapter:
     async def init(cls, database: Any) -> None:  # pragma: no cover
         """Initialize class properties."""
         cls.database = database
-        cls.logger = logging.getLogger(__name__)
+        cls.logger = logging.getLogger("uvicorn.error")
 
     @classmethod
     async def get_all_competition_formats(

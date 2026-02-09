@@ -22,9 +22,7 @@ from .exceptions import (
 class CompetitionFormatsService:
     """Class representing a service for competition_formats."""
 
-    logger = logging.getLogger(
-        "competition_format_service.competition_formats_service.CompetitionFormatsService"
-    )
+    logger = logging.getLogger("uvicorn.error")
 
     @classmethod
     async def create_competition_format(

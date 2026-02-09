@@ -25,9 +25,7 @@ HOST_PORT = os.getenv("HOST_PORT", "8080")
 BASE_URL = f"http://{HOST_SERVER}:{HOST_PORT}"
 
 
-logger = logging.getLogger(
-    "competition_format_service.competition_formats_view.CompetitionFormatsView"
-)
+logger = logging.getLogger("uvicorn.error")
 
 router = APIRouter()
 

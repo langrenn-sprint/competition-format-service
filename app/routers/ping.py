@@ -5,7 +5,7 @@ import logging
 from fastapi import APIRouter
 from fastapi.responses import PlainTextResponse
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("uvicorn.error")
 
 router = APIRouter()
 
