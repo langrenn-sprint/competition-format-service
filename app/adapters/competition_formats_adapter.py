@@ -8,18 +8,18 @@ from pydantic import TypeAdapter
 
 from app.models import CompetitionFormatUnion
 
+logger = logging.getLogger(__name__)
+
 
 class CompetitionFormatsAdapter:
     """Class representing an adapter for competition_formats."""
 
     database: Any
-    logger: logging.Logger
 
     @classmethod
     async def init(cls, database: Any) -> None:  # pragma: no cover
         """Initialize class properties."""
         cls.database = database
-        cls.logger = logging.getLogger("uvicorn.error")
 
     @classmethod
     async def get_all_competition_formats(
@@ -61,7 +61,7 @@ class CompetitionFormatsAdapter:
     ) -> list[CompetitionFormatUnion]:  # pragma: no cover
         """Get competition_format by name function."""
         query = {"$regex": f".*{competition_format_name}.*", "$options": "i"}
-        cls.logger.debug(f"Query: {query}.")
+        logger.debug(f"Query: {query}.")
         cursor = cls.database.competition_formats_collection.find({"name": query})
         return [
             TypeAdapter(CompetitionFormatUnion).validate_python(competition_format)
