@@ -45,12 +45,12 @@ dev = [
 ]
 
 [tool.uv]
-required-version = "0.9.29"
+required-version = ">=0.13.7"
 
 [tool.ruff.lint]
 select = ["ALL"]
 # and then manually ignore annoying ones:
-ignore = ["COM812", "ISC001", "T201", "G004", "E501", "ANN401"]
+ignore = ["COM812", "ISC001", "T201", "G004", "E501", "ANN401", "CPY001"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = [
@@ -76,7 +76,7 @@ DEP002 = ["aiodns", "certifi", "pyjwt"]
 [tool.pytest.ini_options]
 env = [
     "CONFIG=test",
-    "JWT_SECRET=secret",
+    "JWT_SECRET=test_jwt_secret_key_for_development_do_not_use_in_production_12345",
     "ADMIN_USERNAME=admin",
     "ADMIN_PASSWORD=password",
     "JWT_EXP_DELTA_SECONDS=60",
@@ -86,7 +86,6 @@ env = [
     "LOGGING_LEVEL=DEBUG",
     "USERS_HOST_SERVER=localhost",
     "USERS_HOST_PORT=8081",
-    "JWT_SECRET=secret"
 ]
 asyncio_mode = "auto"
 markers = [

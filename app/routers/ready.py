@@ -10,7 +10,7 @@ from app.adapters import LivenessAdapter
 
 CONFIG = os.getenv("CONFIG", "production")
 
-logger = logging.getLogger("uvicorn.error")
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 

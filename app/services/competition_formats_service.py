@@ -18,11 +18,11 @@ from .exceptions import (
     ValidationError,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class CompetitionFormatsService:
     """Class representing a service for competition_formats."""
-
-    logger = logging.getLogger("uvicorn.error")
 
     @classmethod
     async def create_competition_format(
@@ -75,7 +75,7 @@ class CompetitionFormatsService:
         result = await CompetitionFormatsAdapter.create_competition_format(
             competition_format
         )
-        cls.logger.debug(
+        logger.debug(
             f"inserted competition_format with id: {competition_format.id.hex} and result: {result}"
         )
         if result:
