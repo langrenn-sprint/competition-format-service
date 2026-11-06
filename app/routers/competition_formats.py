@@ -6,11 +6,11 @@ from http import HTTPStatus
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import Response
 
 from app.adapters import CompetitionFormatsAdapter
-from app.authorization import RoleChecker, UserRole
+from app.authorization import UserRole, require_roles
 from app.models import CompetitionFormatUnion
 from app.services import (
     CompetitionFormatAlreadyExistError,
@@ -46,7 +46,7 @@ async def get(
 
 @router.post(
     "/competition-formats",
-    dependencies=[Depends(RoleChecker([UserRole.Admin]))],
+    dependencies=[require_roles(UserRole.Admin)],
 )
 async def post(
     competition_format: CompetitionFormatUnion,
@@ -99,7 +99,7 @@ async def get_by_id(
 
 @router.put(
     "/competition-formats/{competition_format_id}",
-    dependencies=[Depends(RoleChecker([UserRole.Admin]))],
+    dependencies=[require_roles(UserRole.Admin)],
 )
 async def put(
     competition_format_id: UUID,
@@ -124,7 +124,7 @@ async def put(
 
 @router.delete(
     "/competition-formats/{competition_format_id}",
-    dependencies=[Depends(RoleChecker([UserRole.Admin]))],
+    dependencies=[require_roles(UserRole.Admin)],
 )
 async def delete(competition_format_id: UUID) -> Response:
     """Delete route function."""
