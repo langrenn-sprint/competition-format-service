@@ -5,9 +5,9 @@ import os
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-import motor.motor_asyncio
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from pymongo import AsyncMongoClient
 
 from .adapters import CompetitionFormatsAdapter, LivenessAdapter
 from .authorization import (
@@ -94,7 +94,7 @@ async def lifespan(api: FastAPI) -> AsyncGenerator[None]:  # noqa: ARG001  # pra
     """Start adapters and internal message consumer on app startup."""
     # Initialize database:
     logger.debug(f"Connecting to db at {DB_HOST}:{DB_PORT}")
-    mongo = motor.motor_asyncio.AsyncIOMotorClient(
+    mongo = AsyncMongoClient(
         host=DB_HOST,
         port=DB_PORT,
         username=DB_USER,
@@ -109,7 +109,7 @@ async def lifespan(api: FastAPI) -> AsyncGenerator[None]:  # noqa: ARG001  # pra
     yield
 
     # Cleanup resources if needed
-    mongo.close()
+    await mongo.close()
 
 
 api = FastAPI(
