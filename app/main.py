@@ -14,6 +14,7 @@ from .authorization import (
     TokenError,
     TokenMissingError,
     TokenValidationError,
+    document_roles,
 )
 from .routers import competition_formats, ping, ready
 
@@ -147,3 +148,4 @@ async def token_exception_handler(request: Request, exc: TokenError) -> JSONResp
 api.include_router(ping.router)
 api.include_router(ready.router)
 api.include_router(competition_formats.router)
+document_roles(api)
