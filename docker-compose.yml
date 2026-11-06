@@ -4,7 +4,7 @@ services:
     build: .
     image: ghcr.io/langrenn-sprint/competition-format-service:test
     ports:
-      - 8080:8000
+      - 8000
     environment:
       - ADMIN_USERNAME=${ADMIN_USERNAME}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
@@ -22,7 +22,7 @@ services:
   user-service:
     image: ghcr.io/langrenn-sprint/user-service:latest
     ports:
-      - 8081:8000
+      - 8000
     environment:
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXP_DELTA_SECONDS=${JWT_EXP_DELTA_SECONDS}
@@ -38,7 +38,7 @@ services:
   mongodb:
     image: mongo:7-jammy
     ports:
-      - 27017:27017
+      - 27017
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${DB_USER}
       - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD}
